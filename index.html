@@ -218,7 +218,8 @@ document.getElementById('gbtn').addEventListener('click',go);
 
 <script>
 var MODULES = [];
-function ok(letter, why) { return { kind: 'ok', letter: letter, why: why }; }
+function ok(letter, why, also) { return { kind: 'ok', letter: letter, why: why, also: also || [] }; }
+function accepts(r, L) { return !!r && r.kind === 'ok' && (r.letter === L || r.also.indexOf(L) > -1); }
 function gray(title, why) { return { kind: 'gray', letter: null, title: title, why: why }; }
 
 /* ---------- Bipolar spectrum ---------- */
@@ -392,12 +393,12 @@ MODULES.push({
   id: 'antidepressants', tab: 'Antidepressants', group: 'Pharmacology',
   stem: ['A 46-year-old woman has had 6 weeks of depressed mood, anhedonia, poor concentration and guilt, and meets criteria for major depressive disorder. She also has ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate antidepressant?'],
   slots: [
-    { id: 1, name: 'Comorbidity', opts: { a: 'no other symptoms', b: 'burning pain and numbness in both feet from diabetic neuropathy', c: 'a pack-a-day smoking habit that she wants to quit', d: 'severe insomnia and has lost 7 kg (15 lb) without trying' } },
+    { id: 1, name: 'Comorbidity', opts: { a: 'no other symptoms', b: 'burning pain and numbness in both feet from diabetic neuropathy', c: 'a pack-a-day smoking habit that she wants to quit', d: 'severe insomnia and has lost 7 kg (15 lb) without trying', e: 'trouble staying asleep that has persisted since she started sertraline 6 weeks ago, although her mood is beginning to lift' } },
     { id: 2, name: 'Past treatment', opts: { a: 'This is her first antidepressant', b: 'She stopped sertraline last year because of sexual side effects', c: 'Adequate trials of sertraline and then bupropion have both failed to help' } },
     { id: 3, name: 'Medical history', opts: { a: 'Her blood pressure, weight and other labs are unremarkable', b: 'She has epilepsy, well controlled on levetiracetam', c: 'Her BMI is 36, and her HbA1c has risen to 8.4%' } }
   ],
   answers: [['A', 'Sertraline (SSRI)'], ['B', 'Duloxetine (SNRI)'], ['C', 'Venlafaxine (SNRI)'], ['D', 'Bupropion (NDRI)'], ['E', 'Mirtazapine (alpha-2 antagonist)'], ['F', 'Trazodone (5-HT2 antagonist)'], ['G', 'Amitriptyline (tricyclic)'], ['H', 'Esketamine nasal spray (NMDA antagonist)']],
-  presets: [['a','a','a'], ['b','a','a'], ['c','a','a'], ['d','a','a'], ['a','b','a'], ['a','c','a']],
+  presets: [['a','a','a'], ['b','a','a'], ['c','a','a'], ['d','a','a'], ['a','b','a'], ['a','c','a'], ['e','a','a']],
   ruler: null,
   footer: 'Key points: SSRIs are first line. Duloxetine adds neuropathic pain. Bupropion avoids sexual side effects and weight gain and helps smoking cessation, but lowers the seizure threshold. Mirtazapine sedates and increases appetite. Esketamine is added for treatment-resistant depression. Tricyclics are lethal in overdose.',
   needs: {
@@ -405,14 +406,18 @@ MODULES.push({
     B: { 1: 'Duloxetine earns its place through its second indication, diabetic neuropathic pain (1b).', 2: 'Duloxetine causes the same kind of sexual side effects she had on sertraline (2a or 2c would remove that problem).' },
     D: { 1: 'Bupropion is chosen for smoking cessation (1c), or to avoid sexual side effects (2b) when nothing else steers the choice.', 2: 'Without smoking to target, bupropion’s edge is avoiding sexual side effects (2b). It has also already failed in 2c.', 3: 'Bupropion lowers the seizure threshold, so epilepsy rules it out (3a or 3c would allow it).' },
     E: { 1: 'Mirtazapine is chosen when sedation and appetite are wanted (1d), or as the fallback when SSRIs and bupropion are both out.', 2: 'Without a reason to avoid SSRIs (2b), sertraline comes first.', 3: 'Mirtazapine causes weight gain and can worsen glucose, a poor fit with a high BMI and rising HbA1c. As a fallback it is needed only when epilepsy rules out bupropion (3b).' },
+    F: { 1: 'Trazodone is added at bedtime for insomnia that persists while an SSRI is working (1e).', 2: 'This fits only if she is now taking sertraline as her first antidepressant (2a).' },
     H: { 1: 'An untried drug that also treats her other problem comes before esketamine (1a or 1c).', 2: 'Esketamine is for treatment-resistant depression, after at least two adequate antidepressant trials have failed (2c).', 3: 'With insomnia and weight loss, untried mirtazapine comes first unless her weight and glucose argue against it (3c).' }
   },
   never: {
     C: 'Venlafaxine works, but it adds a dose-related rise in blood pressure, harsher discontinuation symptoms and sexual side effects. Duloxetine is the SNRI with the neuropathic-pain indication, so venlafaxine is not the best answer in any version of this case.',
-    F: 'At antidepressant doses trazodone is very sedating and can cause orthostasis and priapism; at low doses it is mainly a sleep aid. For insomnia with weight loss, mirtazapine treats the depression and helps both sleep and appetite.',
     G: 'Amitriptyline treats depression and neuropathic pain, but it is anticholinergic and sedating, causes weight gain and orthostasis, and is lethal in overdose. A newer agent is the safer first choice in every version of this case.'
   },
   diagnose: function (c, s, h) {
+    if (c === 'e') {
+      if (s !== 'a') return gray('These details contradict each other', 'Slot 1 says she is taking sertraline now, but slot 2 says sertraline was stopped or has already failed. Pick a different past treatment (2a) or comorbidity.');
+      return ok('F', 'Her mood is responding to sertraline, so keep it. For insomnia that persists, add low-dose trazodone at bedtime. It blocks 5-HT2A and H1 receptors and is mainly a sleep aid at low doses. Warn about sedation, orthostasis and priapism, a urological emergency.');
+    }
     var mirt = 'Mirtazapine blocks alpha-2 receptors (and 5-HT2, 5-HT3 and H1 receptors). ';
     var bup = 'Bupropion inhibits norepinephrine and dopamine reuptake. ';
     var esk = 'Two adequate trials have failed, so this is treatment-resistant depression. Esketamine, an NMDA receptor antagonist given as a supervised nasal spray with an oral antidepressant, works within days. Augmentation and ECT are the other main options.';
@@ -478,11 +483,11 @@ MODULES.push({
   stem: ['A 33-year-old woman sees her primary care physician about ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate medication?'],
   slots: [
     { id: 1, name: 'Disorder', opts: { a: 'generalized anxiety disorder, with 8 months of constant, hard-to-control worry', b: 'panic disorder, with recurrent unexpected attacks and constant fear of the next one', c: 'fear of public speaking only, with a tremor and racing heart before the presentation she gives each month', d: 'posttraumatic stress disorder after an assault, with flashbacks and nightly nightmares' } },
-    { id: 2, name: 'Past treatment', opts: { a: 'She has never taken medication for it', b: 'She has taken sertraline at a full dose for 3 months with only partial improvement' } },
+    { id: 2, name: 'Past treatment', opts: { a: 'She has never taken medication for it', b: 'She has taken sertraline at a full dose for 3 months with only partial improvement', c: 'She started sertraline 10 days ago and asks for something to take when her symptoms flare until it starts working' } },
     { id: 3, name: 'History', opts: { a: 'She is otherwise healthy', b: 'She has moderate persistent asthma', c: 'She has alcohol use disorder in early remission' } }
   ],
   answers: [['A', 'Sertraline (SSRI)'], ['B', 'Buspirone'], ['C', 'Venlafaxine (SNRI)'], ['D', 'Propranolol'], ['E', 'Prazosin'], ['F', 'Lorazepam'], ['G', 'Hydroxyzine']],
-  presets: [['a','a','a'], ['a','b','a'], ['b','b','a'], ['c','a','a'], ['c','a','b'], ['d','b','a']],
+  presets: [['a','a','a'], ['a','b','a'], ['b','b','a'], ['c','a','a'], ['c','a','b'], ['d','b','a'], ['b','c','a'], ['b','c','c']],
   ruler: null,
   footer: 'Key points: SSRIs and SNRIs are first line for GAD, panic disorder and PTSD and take weeks to work. Buspirone augments a partial response in GAD. Propranolol is taken as needed for performance anxiety. Prazosin targets trauma nightmares. Benzodiazepines are short-term only and are avoided in PTSD and substance use disorders.',
   needs: {
@@ -491,13 +496,19 @@ MODULES.push({
     C: { 1: 'Switching to venlafaxine is the step here for panic disorder that responded only partly to sertraline (1b).', 2: 'Venlafaxine is the next step after a partial response (2b); sertraline comes first.' },
     D: { 1: 'Propranolol is for predictable performance anxiety (1c), where it blunts tremor and palpitations.', 3: 'Propranolol is a non-selective beta-blocker and can trigger bronchospasm, so asthma rules it out (3a or 3c would allow it).' },
     E: { 1: 'Prazosin is for trauma-related nightmares (1d).', 2: 'Prazosin is added for nightmares that persist after first-line treatment (2b).' },
-    F: { 1: 'A one-time low dose of lorazepam is only for performance anxiety (1c) when propranolol cannot be used.', 3: 'Lorazepam is the fallback only when asthma rules out propranolol (3b). With alcohol use disorder, benzodiazepines are avoided.' }
+    G: { 1: 'Hydroxyzine is the bridge in PTSD, where benzodiazepines are avoided (1d), or in GAD or panic when a benzodiazepine is risky.', 2: 'Hydroxyzine is used here as a bridge while sertraline starts working (2c).', 3: 'Outside PTSD, hydroxyzine is the bridge when alcohol use disorder makes a benzodiazepine risky (3c); otherwise a brief benzodiazepine is also acceptable.' },
+    F: { 1: 'Lorazepam is used here for performance anxiety when propranolol cannot be used (1c), or as a brief bridge for GAD or panic while an SSRI starts working (1a or 1b with 2c); not in PTSD.', 2: 'A short benzodiazepine bridge fits only the first weeks of an SSRI (2c); with 2a or 2b the plan is different.', 3: 'Lorazepam is the fallback only when asthma rules out propranolol (3b). With alcohol use disorder, benzodiazepines are avoided.' }
   },
-  never: { G: 'Hydroxyzine, an H1 antagonist, is a non-habit-forming as-needed option, but it is sedating and anticholinergic and is not a first-line treatment for any of these disorders.' },
+  never: {},
   diagnose: function (c, s, h) {
     if (c === 'c') {
       if (h === 'b') return ok('F', 'Propranolol, a non-selective beta-blocker, can trigger bronchospasm in asthma. For a predictable, occasional performance, a single low dose of a benzodiazepine such as lorazepam before the talk is a reasonable alternative.');
       return ok('D', 'For predictable performance anxiety, propranolol taken about an hour before blocks beta-adrenergic receptors and blunts the tremor, palpitations and sweating. An as-needed drug suits a monthly event better than a daily SSRI.' + (h === 'c' ? ' It also avoids a benzodiazepine in someone with alcohol use disorder.' : ''));
+    }
+    if (s === 'c') {
+      if (c === 'd') return ok('G', 'Benzodiazepines are avoided in PTSD: they do not help and may block recovery. While sertraline starts working, hydroxyzine, an H1 antihistamine, is a non-habit-forming as-needed option. Prazosin targets nightmares specifically.');
+      if (h === 'c') return ok('G', 'A benzodiazepine bridge is risky with alcohol use disorder. Hydroxyzine, an H1 antihistamine, eases breakthrough anxiety without misuse potential; expect sedation and anticholinergic effects.');
+      return ok('F', 'SSRIs take 4 or more weeks to work. A brief course of a benzodiazepine such as lorazepam (a GABA-A positive allosteric modulator) bridges the gap; stop it once the SSRI works. Hydroxyzine is an acceptable non-habit-forming alternative.', ['G']);
     }
     if (s === 'a') return ok('A', 'An SSRI such as sertraline, a serotonin reuptake inhibitor, is first line for generalized anxiety, panic disorder and PTSD. It takes 4 to 6 weeks to work.' + (h === 'c' ? ' Benzodiazepines would be a poor choice with alcohol use disorder.' : ''));
     if (c === 'a') return ok('B', 'For a partial response in GAD, adding buspirone, a 5-HT1A partial agonist, is a standard augmentation. It is not sedating or habit-forming but takes weeks to work.');
@@ -509,36 +520,47 @@ MODULES.push({
 /* ---------- Antipsychotics ---------- */
 MODULES.push({
   id: 'antipsychotics', tab: 'Antipsychotics', group: 'Pharmacology',
-  stem: ['A 24-year-old man with schizophrenia sees his psychiatrist. ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate antipsychotic?'],
+  stem: ['A 24-year-old man with schizophrenia is seen by a psychiatrist. ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate antipsychotic?'],
   slots: [
-    { id: 1, name: 'Treatment history', opts: { a: 'This is his first episode, and he has never taken an antipsychotic', b: 'Adequate trials of risperidone and then olanzapine did not control his voices', c: 'He improves on oral medication but keeps stopping it and has been readmitted three times this year' } },
+    { id: 1, name: 'Treatment history', opts: { a: 'This is his first episode, and he has never taken an antipsychotic', b: 'Adequate trials of risperidone and then olanzapine did not control his voices', c: 'He improves on oral medication but keeps stopping it and has been readmitted three times this year', d: 'He stopped his medication and is now in the emergency department, acutely agitated, shouting threats and striking at staff', e: 'He takes his medication and his symptoms are controlled, but he wants to switch because of a side effect' } },
     { id: 2, name: 'Metabolic', opts: { a: 'His BMI is 23, and his glucose and lipids are normal', b: 'His BMI is 35, and he has prediabetes' } },
-    { id: 3, name: 'Other', opts: { a: 'He has no other medical concerns', b: 'His ECG shows a QTc of 520 ms', c: 'He developed breast enlargement and low libido on risperidone in the past' } }
+    { id: 3, name: 'Other', opts: { a: 'He has no other medical concerns', b: 'His ECG shows a QTc of 520 ms', c: 'He developed breast enlargement and low libido on risperidone', d: 'He developed disabling restlessness (akathisia) on aripiprazole' } }
   ],
   answers: [['A', 'Risperidone'], ['B', 'Olanzapine'], ['C', 'Aripiprazole'], ['D', 'Clozapine'], ['E', 'Paliperidone palmitate (monthly injection)'], ['F', 'Haloperidol'], ['G', 'Ziprasidone']],
-  presets: [['a','b','a'], ['a','a','b'], ['b','a','a'], ['c','a','a'], ['c','a','c'], ['b','b','a']],
+  presets: [['a','a','a'], ['a','b','a'], ['b','a','a'], ['c','a','a'], ['d','a','a'], ['d','a','b'], ['e','b','d'], ['e','a','c']],
   ruler: null,
   footer: 'Key points: clozapine is the drug for treatment-resistant schizophrenia and needs neutrophil monitoring. Long-acting injectables help with nonadherence. Olanzapine and clozapine cause the most weight gain; aripiprazole and lurasidone the least. Risperidone and paliperidone raise prolactin. Ziprasidone prolongs QT.',
   needs: {
-    C: { 1: 'For a first episode with metabolic, QT or prolactin concerns, or nonadherence with those concerns, aripiprazole is the fit (1a or 1c). After two failed trials, clozapine comes first.', 2: 'Without a metabolic, QT or prolactin concern, there is no clear reason to prefer aripiprazole (2b would give one).', 3: 'Without a metabolic, QT or prolactin concern, there is no clear reason to prefer aripiprazole (3b or 3c would give one).' },
+    A: { 1: 'Risperidone fits a first episode with no special concerns (1a), or a switch away from aripiprazole because of akathisia (1e).', 2: 'With obesity and prediabetes, a metabolically gentler drug is preferred (2a would allow risperidone).', 3: 'Risperidone raises prolactin, and a long QTc favors aripiprazole. It fits with no concerns in a first episode (3a) or after akathisia on aripiprazole (3d).' },
+    B: { 1: 'Olanzapine is chosen here as a rapid, sedating option for acute agitation (1d).', 2: 'Olanzapine causes the most weight gain after clozapine; as a long-term choice it is a poor fit, so it appears only for acute agitation (1d).', 3: 'Outside acute agitation, olanzapine is not the best choice in this case.' },
+    C: { 1: 'Aripiprazole fits a first episode with metabolic or QT concerns, nonadherence with those concerns (monthly injection), or a switch for QT or prolactin problems (1a, 1c or 1e). After two failed trials, clozapine comes first.', 2: 'Without a metabolic, QT or prolactin concern, there is no clear reason to prefer aripiprazole (2b would give one).', 3: 'Aripiprazole is chosen for metabolic, QT or prolactin concerns (3b or 3c). After akathisia on aripiprazole (3d), switch to something else.' },
     D: { 1: 'Clozapine is for treatment-resistant schizophrenia, after two adequate antipsychotic trials have failed (1b).' },
-    E: { 1: 'A long-acting injectable is chosen for repeated nonadherence and relapse (1c).', 2: 'Paliperidone carries moderate metabolic risk; with obesity and prediabetes, aripiprazole’s monthly injection fits better (2a would allow it).', 3: 'Paliperidone is risperidone’s active metabolite, so it shares the prolactin problem, and QT prolongation argues for aripiprazole instead (3a would allow it).' }
+    E: { 1: 'A long-acting injectable is chosen for repeated nonadherence and relapse (1c).', 2: 'Paliperidone carries moderate metabolic risk; with obesity and prediabetes, aripiprazole’s monthly injection fits better (2a would allow it).', 3: 'Paliperidone is risperidone’s active metabolite, so it shares the prolactin problem, and QT prolongation argues for aripiprazole instead (3a or 3d would allow it).' },
+    F: { 1: 'Haloperidol is chosen here for acute agitation (1d), not for long-term treatment.', 3: 'With a QTc of 520, avoid haloperidol, especially IV (3a, 3c or 3d would allow it).' },
+    G: { 1: 'Ziprasidone fits a switch away from aripiprazole (1e).', 2: 'Its edge here is low metabolic risk, which matters with obesity and prediabetes (2b).', 3: 'Ziprasidone is the switch for akathisia on aripiprazole (3d). It prolongs QT, so avoid it with a long QTc (3b).' }
   },
-  never: {
-    A: 'Risperidone is a reasonable first-line drug for a first episode with no special concerns, but it raises prolactin and causes dose-related EPS. In every version of this case with a clean answer, another drug fits better.',
-    B: 'Olanzapine is effective, but after clozapine it causes the most weight gain, diabetes and dyslipidemia. It is not the best answer in any version of this case.',
-    F: 'Haloperidol, a high-potency first-generation drug, carries a high risk of acute dystonia, parkinsonism and tardive dyskinesia. It is used mainly for acute agitation or as a long-acting injectable, not as first choice here.',
-    G: 'Ziprasidone has low metabolic risk but prolongs QT more than the others listed and must be taken with food. Aripiprazole is the safer metabolically neutral choice in every version of this case.'
-  },
+  never: {},
   diagnose: function (c, s, h) {
-    if (c === 'a' && h === 'c') return gray('These details contradict each other', 'A first episode with no past antipsychotic cannot include a past reaction to risperidone. Pick a different treatment history or concern.');
+    if (c === 'a' && (h === 'c' || h === 'd')) return gray('These details contradict each other', 'A first episode with no past antipsychotic cannot include a past reaction to another antipsychotic. Pick a different treatment history or concern.');
+    if (c === 'e' && h === 'a') return gray('Which side effect?', 'He wants to switch because of a side effect, but slot 3 names none. Pick the side effect (3b, 3c or 3d).');
+    if (c === 'd') {
+      if (h === 'b') return ok('B', 'Acute agitation in psychosis: safety first, with a rapid-acting, sedating antipsychotic, often alongside a benzodiazepine. With a QTc of 520, avoid haloperidol (especially IV) and ziprasidone; intramuscular olanzapine is the better choice.');
+      return ok('F', 'Acute agitation in psychosis: safety first. A rapid-acting antipsychotic such as intramuscular haloperidol, often with a benzodiazepine such as lorazepam, calms him quickly. A high-potency typical, it can cause acute dystonia within hours to days; treat that with IV benztropine. Intramuscular olanzapine is an equally acceptable choice.', ['B']);
+    }
     if (c === 'b') return ok('D', 'Two adequate trials have failed, so this is treatment-resistant schizophrenia. Clozapine is the only antipsychotic with proven benefit here and also lowers suicide risk. It requires regular neutrophil monitoring for agranulocytosis.' + (s === 'b' ? ' Its weight and glucose effects need close metabolic monitoring.' : '') + (h === 'b' ? ' Correct electrolytes and get cardiology input given his QTc.' : ''));
     var arip = 'Aripiprazole, a D2 partial agonist, has little effect on weight, glucose, QT or prolactin.';
     if (c === 'c') {
+      if (h === 'd') return s === 'a' ? ok('E', 'Repeated relapse from stopping oral medication calls for a long-acting injectable. Akathisia rules out aripiprazole’s injection, and with normal metabolic health, monthly paliperidone palmitate fits.') : gray('Tradeoff: discuss', 'He needs a long-acting injectable, but akathisia argues against aripiprazole’s injection and obesity with prediabetes argues against paliperidone. Weigh the side effects with him, and monitor closely whichever is chosen.');
       if (s === 'a' && h === 'a') return ok('E', 'Repeated relapse from stopping oral medication is the main indication for a long-acting injectable. Paliperidone palmitate, given monthly, keeps a steady level without daily pills.');
       return ok('C', 'Repeated nonadherence calls for a long-acting injectable, and ' + (h === 'c' ? 'paliperidone shares risperidone’s prolactin effect' : h === 'b' ? 'his QTc argues against most options' : 'his obesity and prediabetes argue against paliperidone') + '. ' + arip + ' It is available as a monthly injection.');
     }
-    if (s === 'a' && h === 'a') return gray('More than one good answer', 'For a first episode with no special concerns, any second-generation antipsychotic except clozapine is reasonable, including risperidone and aripiprazole. Choose by side-effect profile and patient preference, and start low.');
+    if (c === 'e') {
+      if (h === 'b') return ok('C', 'A QTc of 520 is a reason to switch. ' + arip + ' Avoid ziprasidone and IV haloperidol, and correct electrolytes.');
+      if (h === 'c') return ok('C', 'Breast enlargement and low libido come from raised prolactin, risperidone’s signature effect. ' + arip + ' It is the usual switch.');
+      if (s === 'b') return ok('G', 'Akathisia is aripiprazole’s signature side effect, so switch. With obesity and prediabetes, ziprasidone keeps metabolic risk low. It must be taken with food to be absorbed, and it prolongs QT, so check an ECG first.');
+      return ok('A', 'Akathisia is aripiprazole’s signature side effect, so switch. With normal metabolic health several drugs are reasonable: risperidone (watch prolactin and EPS), olanzapine (watch weight) or ziprasidone (take with food, check QT).', ['B', 'G']);
+    }
+    if (s === 'a' && h === 'a') return ok('A', 'For a first episode with no special concerns, any second-generation antipsychotic except clozapine is reasonable. Risperidone and aripiprazole are both good first choices; choose by side-effect profile and patient preference, and start low.', ['C']);
     return ok('C', arip + (s === 'b' ? ' That makes it a good fit for obesity and prediabetes.' : '') + (h === 'b' ? ' Avoid ziprasidone and IV haloperidol with a long QTc.' : ''));
   }
 });
@@ -550,23 +572,27 @@ MODULES.push({
   slots: [
     { id: 1, name: 'Disorder', opts: { a: 'alcohol use disorder; she completed detox 5 days ago and has not drunk since', b: 'opioid use disorder; she has injected heroin daily for 2 years' } },
     { id: 2, name: 'Organ function', opts: { a: 'Her liver and kidney tests are normal', b: 'She has cirrhosis with jaundice', c: 'Her eGFR is 25 mL/min' } },
-    { id: 3, name: 'Situation', opts: { a: 'She takes no other medications', b: 'She takes prescribed oxycodone daily for chronic back pain', c: 'She is 18 weeks pregnant' } }
+    { id: 3, name: 'Situation', opts: { a: 'She takes no other medications', b: 'She takes prescribed oxycodone daily for chronic back pain', c: 'She is 18 weeks pregnant', d: 'She relapsed twice while taking buprenorphine and wants a more structured program with daily supervised dosing' } }
   ],
   answers: [['A', 'Naltrexone'], ['B', 'Acamprosate'], ['C', 'Disulfiram'], ['D', 'Buprenorphine'], ['E', 'Methadone'], ['F', 'Naloxone']],
-  presets: [['a','a','a'], ['a','b','a'], ['a','a','b'], ['a','c','b'], ['b','a','a'], ['b','a','c']],
+  presets: [['a','a','a'], ['a','b','a'], ['a','a','b'], ['a','c','b'], ['b','a','a'], ['b','a','c'], ['b','a','d']],
   ruler: null,
   footer: 'Key points: naltrexone (mu antagonist) is first line for alcohol use disorder but cannot be used with opioids or liver failure. Acamprosate (glutamate modulator) is safe in liver disease but renally cleared. Disulfiram is a deterrent that needs a motivated patient. Buprenorphine and methadone treat opioid use disorder, including in pregnancy. Naloxone reverses overdose.',
   needs: {
     A: { 1: 'Here naltrexone is the pick for alcohol use disorder (1a); for someone injecting heroin daily it would precipitate withdrawal.', 2: 'Naltrexone is avoided in decompensated liver disease (2a or 2c would allow it).', 3: 'Naltrexone blocks opioid receptors, so it would cause withdrawal and block pain relief in someone taking oxycodone (3a would allow it).' },
     B: { 1: 'Acamprosate is for alcohol use disorder (1a), not opioid use disorder.', 2: 'Acamprosate is renally cleared and contraindicated with an eGFR of 30 or less (2a or 2b would allow it).', 3: 'Acamprosate is the pick when naltrexone is out because of opioids (3b) or liver disease (2b).' },
     C: { 1: 'Disulfiram is for alcohol use disorder (1a).', 2: 'Disulfiram is the remaining option only when kidney disease rules out acamprosate (2c) and opioids rule out naltrexone.', 3: 'Disulfiram is the remaining option only when opioids rule out naltrexone (3b) and kidney disease rules out acamprosate.' },
-    D: { 1: 'Buprenorphine treats opioid use disorder (1b), not alcohol use disorder.' }
+    D: { 1: 'Buprenorphine treats opioid use disorder (1b), not alcohol use disorder.', 3: 'After two relapses on buprenorphine and a wish for supervised daily dosing (3d), methadone is the next step.' },
+    E: { 1: 'Methadone treats opioid use disorder (1b).', 3: 'Methadone is chosen here after relapses on buprenorphine, with a wish for a structured daily program (3d). Otherwise buprenorphine, prescribable in primary care, comes first.' }
   },
   never: {
-    E: 'Methadone is equally effective and also recommended in pregnancy, but it must be dispensed daily through an opioid treatment program and prolongs QT. For a patient in primary care, buprenorphine is the more practical first choice in every version of this case.',
     F: 'Naloxone reverses an overdose; it is not a maintenance or relapse-prevention treatment. Prescribe it alongside, not instead.'
   },
   diagnose: function (c, s, h) {
+    if (h === 'd') {
+      if (c === 'a') return gray('These details do not match', 'Buprenorphine and supervised daily dosing describe treatment for opioid use disorder, but the disorder here is alcohol. Pick the opioid disorder (1b) or a different situation.');
+      return ok('E', 'Two relapses on buprenorphine and a wish for structure point to methadone: a full mu opioid agonist dispensed daily at an opioid treatment program, with no risk of precipitated withdrawal and possibly better retention in treatment. Get a baseline ECG, since methadone prolongs the QTc.' + (s === 'b' ? ' It is metabolized by the liver, so dose cautiously with cirrhosis.' : ''));
+    }
     if (c === 'b') return ok('D', 'Buprenorphine, a high-affinity mu opioid partial agonist, can be prescribed in primary care and has a ceiling on respiratory depression. Start it once she is in mild withdrawal to avoid precipitating withdrawal.' + (h === 'c' ? ' It is a first-line choice in pregnancy (methadone is the other), and stopping opioids abruptly in pregnancy is dangerous.' : '') + (s === 'b' ? ' Use it cautiously, with monitoring, given her liver disease.' : ''));
     if (h === 'c') return gray('No clear first choice in pregnancy', 'Medication data for alcohol use disorder in pregnancy are limited, and disulfiram is avoided. Psychosocial treatment comes first; any medication is an individual risk-benefit decision.');
     var acamp = 'Acamprosate modulates glutamate (NMDA) signaling to reduce cravings. It is renally cleared and safe in liver disease.';
@@ -953,7 +979,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   function cur() { return mod.slots.map(function (s) { return st()[s.id]; }); }
   function diag(arr) { if (arr.some(function (v) { return !v; })) return null; return mod.diagnose.apply(null, arr); }
   function ansName(L) { for (var i = 0; i < mod.answers.length; i++) if (mod.answers[i][0] === L) return L + '. ' + mod.answers[i][1]; return L; }
-  function label(r) { return !r ? '' : r.kind === 'ok' ? ansName(r.letter) : r.title; }
+  function label(r) { return !r ? '' : r.kind === 'ok' ? [r.letter].concat(r.also).map(ansName).join(' or ') : r.title; }
 
   function allCombos() {
     if (resultsCache[mod.id]) return resultsCache[mod.id];
@@ -964,7 +990,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   }
   // Nearest combinations (fewest slot changes) that give letter L.
   function fixesFor(L, c) {
-    var targets = allCombos().filter(function (x) { return x.r.kind === 'ok' && x.r.letter === L; });
+    var targets = allCombos().filter(function (x) { return accepts(x.r, L); });
     if (!targets.length) return null;
     var best = 99, fixes = [];
     targets.forEach(function (x) {
@@ -1026,8 +1052,10 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
     });
     var r = el('button', 'btn', 'Random'); r.type = 'button';
     r.addEventListener('click', function () {
-      var clean = allCombos().filter(function (x) { return x.r.kind === 'ok'; });
-      var x = clean[Math.floor(Math.random() * clean.length)];
+      var byL = {};
+      allCombos().forEach(function (x) { if (x.r.kind === 'ok') (byL[x.r.letter] = byL[x.r.letter] || []).push(x); });
+      var Ls = Object.keys(byL), pool = byL[Ls[Math.floor(Math.random() * Ls.length)]];
+      var x = pool[Math.floor(Math.random() * pool.length)];
       mod.slots.forEach(function (s, j) { st()[s.id] = x.c[j]; }); changed();
     });
     var c = el('button', 'btn', 'Clear slots'); c.type = 'button';
@@ -1143,23 +1171,26 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
         if (k === c[i]) return;
         var alt = c.slice(); alt[i] = k;
         var r2 = diag(alt);
-        if (r2 && r2.kind === 'ok' && r2.letter === r.letter) out.push([slot.id, k]);
+        if (accepts(r2, r.letter)) out.push([slot.id, k]);
       });
     });
     return out;
   }
   function buildFeedback(r) {
     var box = el('div', 'fb'), bad = [];
-    var isRight = picked && r.kind === 'ok' && r.letter === picked;
+    var isRight = picked && accepts(r, picked);
     if (isRight || (shown && r.kind === 'ok')) {
       box.classList.add('ok');
+      var CL = isRight ? picked : r.letter;
       box.appendChild(el('span', 'pill', isRight ? 'Correct' : 'Answer'));
-      box.appendChild(el('p', 'dx', ansName(r.letter)));
+      box.appendChild(el('p', 'dx', ansName(CL)));
+      var others = [r.letter].concat(r.also).filter(function (x) { return x !== CL; });
+      if (others.length) box.appendChild(el('p', 'hint', (r.also.length ? 'More than one answer is acceptable here. Also correct: ' : '') + others.map(ansName).join('; ')));
       box.appendChild(el('p', '', r.why));
-      var pr = mod.present && mod.present[r.letter];
+      var pr = mod.present && mod.present[CL];
       var isDx = mod.group !== 'Pharmacology';
-      if (mod.therapy && mod.therapy[r.letter]) box.appendChild(therapyCard(r.letter, false));
-      else if (mod.drugs && mod.drugs[r.letter]) box.appendChild(drugCard(r.letter, false, pr && pr.not));
+      if (mod.therapy && mod.therapy[CL]) box.appendChild(therapyCard(CL, false));
+      else if (mod.drugs && mod.drugs[CL]) box.appendChild(drugCard(CL, false, pr && pr.not));
       else if (pr) {
         var cols = el('div', 'pres');
         if (pr.see && pr.see.length) {
@@ -1266,7 +1297,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
     if (r && (picked || shown)) {
       var fb = buildFeedback(r); bad = fb.bad;
       // open the feedback right under the row it belongs to
-      var anchorL = (shown && r.kind === 'ok') ? r.letter : picked;
+      var anchorL = (shown && r.kind === 'ok' && !(picked && accepts(r, picked))) ? r.letter : picked;
       var row = anchorL && document.getElementById('ans-' + anchorL);
       if (row) row.insertAdjacentElement('afterend', fb.box); else fbEl.appendChild(fb.box);
     }
@@ -1274,7 +1305,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
 
     document.getElementById('code').textContent = 'Code: ' + mod.slots.map(function (s) { return st()[s.id] ? s.id + st()[s.id] : '—'; }).join(' · ');
     document.querySelectorAll('.chip').forEach(function (ch) { var u = st()[ch.dataset.slot] === ch.dataset.key; ch.classList.toggle('used', u); ch.setAttribute('aria-pressed', u ? 'true' : 'false'); });
-    document.querySelectorAll('.preset').forEach(function (p) { var pr = mod.presets[+p.dataset.preset]; p.setAttribute('aria-pressed', pr.every(function (v, i) { return v === c[i]; }) ? 'true' : 'false'); });
+    document.querySelectorAll('#toolbar .preset').forEach(function (p) { var pr = mod.presets[+p.dataset.preset]; p.setAttribute('aria-pressed', pr.every(function (v, i) { return v === c[i]; }) ? 'true' : 'false'); });
 
     if (mod.ruler) {
       var mark = document.getElementById('mark'), rv = document.getElementById('ruler-val'), v = c[0];
@@ -1284,7 +1315,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
 
     var filled = c.filter(function (v) { return v; }).length;
     var correct = r && r.kind === 'ok' ? r.letter : null;
-    var isRight = picked && correct === picked;
+    var isRight = picked && accepts(r, picked);
     var done = isRight || shown;
     document.querySelectorAll('.ans').forEach(function (b) {
       var L = b.dataset.letter, f = b.querySelector('.flag');
@@ -1292,7 +1323,8 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
       b.classList.remove('right', 'wrong'); f.textContent = '';
       b.setAttribute('aria-pressed', picked === L ? 'true' : 'false');
       if (picked === L) { if (isRight) { b.classList.add('right'); f.textContent = 'Correct'; } else { b.classList.add('wrong'); f.textContent = 'Not this one'; } }
-      if (shown && correct === L && !isRight) { b.classList.add('right'); f.textContent = 'Answer'; }
+      if (shown && accepts(r, L) && !isRight) { b.classList.add('right'); f.textContent = 'Answer'; }
+      if (isRight && picked !== L && accepts(r, L)) { b.classList.add('right'); f.textContent = 'Also correct'; }
     });
     var status = document.getElementById('status');
     var left = c.length - filled;
@@ -1335,6 +1367,8 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
 .vbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
 .vbar h2 { font-family: var(--display); font-size: 18px; margin: 0 auto 0 0; }
 .vbar select { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); max-width: 100%; }
+.vbar .vdoc { font-family: var(--mono); font-weight: 600; }
+.vbar .vdoc[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
 .vbar .pg { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 64px; text-align: center; }
 .vbar a.btn { text-decoration: none; display: inline-block; }
 .vbody { flex: 1; overflow: auto; background: var(--zone); padding: 14px; display: flex; justify-content: center; align-items: flex-start; }
@@ -1347,7 +1381,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   <div class="vbox">
     <div class="vbar">
       <h2 id="vtitle">Study sheets</h2>
-      <span role="group" aria-label="Which PDF" style="display:inline-flex;gap:4px"><button class="btn preset" type="button" id="vdoc-study" aria-pressed="true">Study</button><button class="btn preset" type="button" id="vdoc-practice" aria-pressed="false">Practice</button></span>
+      <span role="group" aria-label="Which PDF" style="display:inline-flex;gap:4px"><button class="btn vdoc" type="button" id="vdoc-study" aria-pressed="true">Study</button><button class="btn vdoc" type="button" id="vdoc-practice" aria-pressed="false">Practice</button></span>
       <select id="vjump" aria-label="Go to sheet"></select>
       <button class="btn" type="button" id="vprev" aria-label="Previous page">‹</button>
       <span class="pg" id="vpg" aria-live="polite"></span>
