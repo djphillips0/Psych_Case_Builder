@@ -214,6 +214,7 @@ document.getElementById('gbtn').addEventListener('click',go);
   </div>
 
   <footer id="footer"></footer>
+  <p class="hint" id="version" style="text-align:center;margin:0">Psychiatry Case Builder · version 1.4 · updated October 30, 2026</p>
 </div>
 
 <script>
@@ -394,11 +395,11 @@ MODULES.push({
   stem: ['A 46-year-old woman has had 6 weeks of depressed mood, anhedonia, poor concentration and guilt, and meets criteria for major depressive disorder. She also has ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate antidepressant?'],
   slots: [
     { id: 1, name: 'Comorbidity', opts: { a: 'no other symptoms', b: 'burning pain and numbness in both feet from diabetic neuropathy', c: 'a pack-a-day smoking habit that she wants to quit', d: 'severe insomnia and has lost 7 kg (15 lb) without trying', e: 'trouble staying asleep that has persisted since she started sertraline 6 weeks ago, although her mood is beginning to lift' } },
-    { id: 2, name: 'Past treatment', opts: { a: 'This is her first antidepressant', b: 'She stopped sertraline last year because of sexual side effects', c: 'Adequate trials of sertraline and then bupropion have both failed to help' } },
-    { id: 3, name: 'Medical history', opts: { a: 'Her blood pressure, weight and other labs are unremarkable', b: 'She has epilepsy, well controlled on levetiracetam', c: 'Her BMI is 36, and her HbA1c has risen to 8.4%' } }
+    { id: 2, name: 'Past treatment', opts: { a: 'This is her first antidepressant', b: 'She stopped sertraline last year because of sexual side effects', c: 'Adequate trials of sertraline and then bupropion have both failed to help', d: 'She took sertraline before but often missed doses, and within a day of a missed dose felt dizzy, irritable and “electric” sensations' } },
+    { id: 3, name: 'Medical history', opts: { a: 'Her blood pressure, weight and other labs are unremarkable', b: 'She has epilepsy, well controlled on levetiracetam', c: 'Her BMI is 36, and her HbA1c has risen to 8.4%', d: 'She takes tamoxifen after treatment for breast cancer' } }
   ],
-  answers: [['A', 'Sertraline (SSRI)'], ['B', 'Duloxetine (SNRI)'], ['C', 'Venlafaxine (SNRI)'], ['D', 'Bupropion (NDRI)'], ['E', 'Mirtazapine (alpha-2 antagonist)'], ['F', 'Trazodone (5-HT2 antagonist)'], ['G', 'Amitriptyline (tricyclic)'], ['H', 'Esketamine nasal spray (NMDA antagonist)']],
-  presets: [['a','a','a'], ['b','a','a'], ['c','a','a'], ['d','a','a'], ['a','b','a'], ['a','c','a'], ['e','a','a']],
+  answers: [['A', 'Sertraline (SSRI)'], ['B', 'Duloxetine (SNRI)'], ['C', 'Venlafaxine (SNRI)'], ['D', 'Bupropion (NDRI)'], ['E', 'Mirtazapine (alpha-2 antagonist)'], ['F', 'Trazodone (5-HT2 antagonist)'], ['G', 'Amitriptyline (tricyclic)'], ['H', 'Esketamine nasal spray (NMDA antagonist)'], ['I', 'Fluoxetine (SSRI)'], ['J', 'Citalopram (SSRI)']],
+  presets: [['a','a','a'], ['b','a','a'], ['c','a','a'], ['d','a','a'], ['a','b','a'], ['a','c','a'], ['e','a','a'], ['a','d','a'], ['a','a','d']],
   ruler: null,
   footer: 'Key points: SSRIs are first line. Duloxetine adds neuropathic pain. Bupropion avoids sexual side effects and weight gain and helps smoking cessation, but lowers the seizure threshold. Mirtazapine sedates and increases appetite. Esketamine is added for treatment-resistant depression. Tricyclics are lethal in overdose.',
   needs: {
@@ -407,6 +408,8 @@ MODULES.push({
     D: { 1: 'Bupropion is chosen for smoking cessation (1c), or to avoid sexual side effects (2b) when nothing else steers the choice.', 2: 'Without smoking to target, bupropion’s edge is avoiding sexual side effects (2b). It has also already failed in 2c.', 3: 'Bupropion lowers the seizure threshold, so epilepsy rules it out (3a or 3c would allow it).' },
     E: { 1: 'Mirtazapine is chosen when sedation and appetite are wanted (1d), or as the fallback when SSRIs and bupropion are both out.', 2: 'Without a reason to avoid SSRIs (2b), sertraline comes first.', 3: 'Mirtazapine causes weight gain and can worsen glucose, a poor fit with a high BMI and rising HbA1c. As a fallback it is needed only when epilepsy rules out bupropion (3b).' },
     F: { 1: 'Trazodone is added at bedtime for insomnia that persists while an SSRI is working (1e).', 2: 'This fits only if she is now taking sertraline as her first antidepressant (2a).' },
+    I: { 1: 'Fluoxetine is chosen here when nothing else steers the choice and missed doses have caused discontinuation symptoms (1a with 2d).', 2: 'Fluoxetine’s edge is its long half-life (7–15 days), which protects against missed doses (2d).', 3: 'Fluoxetine has major CYP450 interactions, including with tamoxifen (3a, 3b or 3c would allow it).' },
+    J: { 1: 'Citalopram is chosen here for its few CYP450 interactions when she takes tamoxifen (3d) and an SSRI fits.', 2: 'Citalopram fits a first SSRI, or one after missed doses on sertraline, when interactions matter (2a or 2d).', 3: 'Citalopram earns its place through few CYP450 interactions, which matters with tamoxifen (3d). Watch its dose-related QTc prolongation.' },
     H: { 1: 'An untried drug that also treats her other problem comes before esketamine (1a or 1c).', 2: 'Esketamine is for treatment-resistant depression, after at least two adequate antidepressant trials have failed (2c).', 3: 'With insomnia and weight loss, untried mirtazapine comes first unless her weight and glucose argue against it (3c).' }
   },
   never: {
@@ -414,6 +417,13 @@ MODULES.push({
     G: 'Amitriptyline treats depression and neuropathic pain, but it is anticholinergic and sedating, causes weight gain and orthostasis, and is lethal in overdose. A newer agent is the safer first choice in every version of this case.'
   },
   diagnose: function (c, s, h) {
+    var cit = 'Citalopram, an SSRI, has few CYP450 interactions, so it does not interfere with tamoxifen the way fluoxetine and paroxetine do. Watch its dose-related QTc prolongation.';
+    if (h === 'd' && c !== 'e' && c !== 'b' && c !== 'd' && s !== 'c') {
+      if (s === 'b') return gray('Tradeoff: discuss', 'Bupropion avoids the sexual side effects she had on sertraline, but check its interactions with tamoxifen with a pharmacist. Citalopram has few CYP450 interactions but may cause the same sexual side effects.');
+      return ok('J', cit + (c === 'c' ? ' Treat smoking separately with varenicline or nicotine replacement.' : ''));
+    }
+    if (s === 'd' && c === 'a') return ok('I', 'Discontinuation symptoms after missed doses come from sertraline’s shorter half-life. Fluoxetine, an SSRI with a half-life of 7–15 days, does not cause discontinuation problems, so missed doses matter far less. Note its major CYP450 interactions.');
+    if (s === 'd' && c === 'b') return gray('Tradeoff: discuss', 'Duloxetine treats her neuropathic pain but, like sertraline, can cause discontinuation symptoms after missed doses. Work on adherence, or consider fluoxetine plus a separate treatment for neuropathic pain.');
     if (c === 'e') {
       if (s !== 'a') return gray('These details contradict each other', 'Slot 1 says she is taking sertraline now, but slot 2 says sertraline was stopped or has already failed. Pick a different past treatment (2a) or comorbidity.');
       return ok('F', 'Her mood is responding to sertraline, so keep it. For insomnia that persists, add low-dose trazodone at bedtime. It blocks 5-HT2A and H1 receptors and is mainly a sleep aid at low doses. Warn about sedation, orthostasis and priapism, a urological emergency.');
@@ -565,17 +575,60 @@ MODULES.push({
   }
 });
 
+/* ---------- Antipsychotic side effects: recognize and manage ---------- */
+MODULES.push({
+  id: 'ap-side', tab: 'Antipsychotic side effects', group: 'Pharmacology',
+  stem: ['A 31-year-old man with schizophrenia started ', 1, ' ', 2, '. Today ', 3, '. Which of the following is the most appropriate next step?'],
+  slots: [
+    { id: 1, name: 'Drug', opts: { a: 'high-dose haloperidol', b: 'risperidone', c: 'aripiprazole', d: 'clozapine' } },
+    { id: 2, name: 'Started', opts: { a: '8 hours ago', b: '3 weeks ago', c: '4 years ago' } },
+    { id: 3, name: 'Finding', opts: {
+      a: 'his neck is pulled painfully to one side, and he cannot straighten it',
+      b: 'he paces, cannot sit still and describes a distressing inner restlessness',
+      c: 'he has a mask-like face, a resting tremor and a shuffling gait',
+      d: 'he has repetitive chewing movements, and his tongue darts in and out',
+      e: 'he has a temperature of 40 °C, rigid muscles, swinging blood pressure and confusion',
+      f: 'a routine blood count shows an absolute neutrophil count of 400/µL' } }
+  ],
+  answers: [['A', 'Give IV benztropine (anticholinergic)'], ['B', 'Hold or lower the dose; add propranolol'], ['C', 'Lower the dose or add an oral anticholinergic'], ['D', 'Stop the antipsychotic; ICU-level supportive care'], ['E', 'Switch to a different antipsychotic'], ['F', 'Stop clozapine and monitor blood counts']],
+  presets: [['b','a','a'], ['c','b','b'], ['b','b','c'], ['a','c','d'], ['b','b','e'], ['d','b','f']],
+  ruler: null,
+  footer: 'Sources: E25 antipsychotics course pack (EPS, tardive dyskinesia, NMS) and Psychotic Disorders slides; Exam Review deck (IV benztropine for acute dystonia); MSE slides (tardive dystonia). Acute dystonia: hours to days. Parkinsonism and akathisia: days to weeks. Tardive dyskinesia: after prolonged use. NMS: any time.',
+  needs: {
+    A: { 2: 'Acute dystonia starts within hours to a few days of starting or raising the drug (2a).', 3: 'IV benztropine treats acute dystonia: sustained, painful muscle contraction (3a).', 1: 'Clozapine has the lowest risk of EPS; dystonia on it is unusual.' },
+    B: { 2: 'Akathisia appears early, within days to weeks (2a or 2b).', 3: 'Propranolol and holding the dose treat akathisia: inner restlessness and an inability to sit still (3b).' },
+    C: { 3: 'Lowering the dose or adding an anticholinergic treats drug-induced parkinsonism: masked face, resting tremor, shuffling gait (3c).', 1: 'Clozapine has the lowest risk of EPS; parkinsonism on it is unusual.' },
+    D: { 3: 'Stopping the drug with ICU-level supportive care is for neuroleptic malignant syndrome: fever, rigidity, autonomic instability, confusion (3e).' },
+    E: { 2: 'Switching is the step for tardive movements, which appear only after prolonged use (2c).', 3: 'Switching antipsychotics is for tardive dyskinesia or tardive dystonia (3d, or 3a after years).', 1: 'Clozapine has the lowest risk of tardive dyskinesia; tardive movements on it are unusual.' },
+    F: { 1: 'Severe neutropenia (agranulocytosis) is the signature risk of clozapine (1d).', 3: 'Stopping clozapine is for a low neutrophil count (3f).' }
+  },
+  never: {},
+  diagnose: function (dr, t, f) {
+    if (f === 'e') return ok('D', 'Fever, rigidity, autonomic instability and confusion on an antipsychotic is neuroleptic malignant syndrome, a medical emergency that can occur at any time and is more common with high-potency drugs. Stop the antipsychotic immediately and give ICU-level supportive care; benzodiazepines, dantrolene and bromocriptine or amantadine are used. Expect CK above 1000 IU/L.');
+    if (f === 'f') return dr === 'd' ? ok('F', 'A neutrophil count of 400/µL is severe neutropenia, the signature risk of clozapine. Stop clozapine and monitor blood counts; this is why clozapine requires regular neutrophil monitoring.') : gray('Not this drug’s signature risk', 'Agranulocytosis is the signature risk of clozapine. On another antipsychotic, look for a different cause of the low neutrophil count.');
+    if (dr === 'd' && (f === 'a' || f === 'c' || f === 'd')) return gray('Unusual on clozapine', 'Clozapine has the lowest risk of extrapyramidal symptoms and tardive dyskinesia of any antipsychotic. Look for another cause before blaming it.');
+    if (f === 'a') {
+      if (t === 'a') return ok('A', 'Sustained, painful contraction of the neck within hours of starting is acute dystonia, most common in young men on high-potency drugs (acute D2 blockade in the nigrostriatal pathway). Treat with an IV anticholinergic such as benztropine (or diphenhydramine); it works within minutes.');
+      if (t === 'c') return ok('E', 'Dystonia that appears after years of treatment is tardive dystonia, a form of tardive dyskinesia. Switch to a different antipsychotic; tardive movements are often treatment-resistant and can be permanent.');
+      return gray('Late for acute dystonia', 'Acute dystonia usually starts within the first hours to days. After weeks without a dose change, consider other causes, and ask whether the dose was just raised.');
+    }
+    if (f === 'b') return t === 'c' ? gray('Late for new akathisia', 'Akathisia usually appears early. After years, ask about a recent dose change or a new drug before calling it akathisia.') : ok('B', 'Inner restlessness and an inability to sit still is akathisia' + (dr === 'c' ? ', the signature side effect of aripiprazole' : '') + '. Hold or lower the dose; propranolol, a beta-blocker, and benzodiazepines also help.');
+    if (f === 'c') return ok('C', 'A masked face, resting tremor and shuffling gait is drug-induced parkinsonism: relative dopamine deficiency in the nigrostriatal pathway from D2 blockade. Lower the dose, add an anticholinergic such as benztropine, or switch to an agent with lower EPS risk.');
+    return t === 'c' ? ok('E', 'Repetitive chewing and tongue movements after years of treatment is tardive dyskinesia, from up-regulated, sensitized D2 receptors in the nigrostriatal pathway. Switch antipsychotics; TD is often treatment-resistant and can be permanent.') : gray('Too early for tardive dyskinesia', 'Tardive dyskinesia appears only after prolonged use. Movements this early suggest acute dystonia or another cause.');
+  }
+});
+
 /* ---------- Substance use medications ---------- */
 MODULES.push({
   id: 'substance-drugs', tab: 'Substance use drugs', group: 'Pharmacology',
   stem: ['A 41-year-old woman sees her primary care physician and asks for medication to support her recovery from ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate medication?'],
   slots: [
-    { id: 1, name: 'Disorder', opts: { a: 'alcohol use disorder; she completed detox 5 days ago and has not drunk since', b: 'opioid use disorder; she has injected heroin daily for 2 years' } },
+    { id: 1, name: 'Disorder', opts: { a: 'alcohol use disorder; she completed detox 5 days ago and has not drunk since', b: 'opioid use disorder; she has injected heroin daily for 2 years', c: 'tobacco use disorder; she smokes a pack a day and wants to quit' } },
     { id: 2, name: 'Organ function', opts: { a: 'Her liver and kidney tests are normal', b: 'She has cirrhosis with jaundice', c: 'Her eGFR is 25 mL/min' } },
     { id: 3, name: 'Situation', opts: { a: 'She takes no other medications', b: 'She takes prescribed oxycodone daily for chronic back pain', c: 'She is 18 weeks pregnant', d: 'She relapsed twice while taking buprenorphine and wants a more structured program with daily supervised dosing' } }
   ],
-  answers: [['A', 'Naltrexone'], ['B', 'Acamprosate'], ['C', 'Disulfiram'], ['D', 'Buprenorphine'], ['E', 'Methadone'], ['F', 'Naloxone']],
-  presets: [['a','a','a'], ['a','b','a'], ['a','a','b'], ['a','c','b'], ['b','a','a'], ['b','a','c'], ['b','a','d']],
+  answers: [['A', 'Naltrexone'], ['B', 'Acamprosate'], ['C', 'Disulfiram'], ['D', 'Buprenorphine'], ['E', 'Methadone'], ['F', 'Naloxone'], ['G', 'Varenicline']],
+  presets: [['a','a','a'], ['a','b','a'], ['a','a','b'], ['a','c','b'], ['b','a','a'], ['b','a','c'], ['b','a','d'], ['c','a','a']],
   ruler: null,
   footer: 'Key points: naltrexone (mu antagonist) is first line for alcohol use disorder but cannot be used with opioids or liver failure. Acamprosate (glutamate modulator) is safe in liver disease but renally cleared. Disulfiram is a deterrent that needs a motivated patient. Buprenorphine and methadone treat opioid use disorder, including in pregnancy. Naloxone reverses overdose.',
   needs: {
@@ -583,12 +636,18 @@ MODULES.push({
     B: { 1: 'Acamprosate is for alcohol use disorder (1a), not opioid use disorder.', 2: 'Acamprosate is renally cleared and contraindicated with an eGFR of 30 or less (2a or 2b would allow it).', 3: 'Acamprosate is the pick when naltrexone is out because of opioids (3b) or liver disease (2b).' },
     C: { 1: 'Disulfiram is for alcohol use disorder (1a).', 2: 'Disulfiram is the remaining option only when kidney disease rules out acamprosate (2c) and opioids rule out naltrexone.', 3: 'Disulfiram is the remaining option only when opioids rule out naltrexone (3b) and kidney disease rules out acamprosate.' },
     D: { 1: 'Buprenorphine treats opioid use disorder (1b), not alcohol use disorder.', 3: 'After two relapses on buprenorphine and a wish for supervised daily dosing (3d), methadone is the next step.' },
+    G: { 1: 'Varenicline is for tobacco use disorder (1c).', 3: 'In pregnancy, medication for smoking is an individual decision; counseling comes first (3a or 3b would allow varenicline).' },
     E: { 1: 'Methadone treats opioid use disorder (1b).', 3: 'Methadone is chosen here after relapses on buprenorphine, with a wish for a structured daily program (3d). Otherwise buprenorphine, prescribable in primary care, comes first.' }
   },
   never: {
     F: 'Naloxone reverses an overdose; it is not a maintenance or relapse-prevention treatment. Prescribe it alongside, not instead.'
   },
   diagnose: function (c, s, h) {
+    if (c === 'c') {
+      if (h === 'd') return gray('These details do not match', 'Relapse on buprenorphine describes opioid use disorder, but the disorder here is tobacco. Pick the opioid disorder (1b) or a different situation.');
+      if (h === 'c') return gray('Pregnancy: counseling first', 'Medication for smoking in pregnancy is an individual risk-benefit decision; behavioral counseling comes first.');
+      return ok('G', 'Varenicline, an α4β2 nicotinic acetylcholine receptor partial agonist, mimics nicotine to prevent withdrawal and blunts the reward of smoking. Bupropion and combination nicotine replacement (patch plus gum or lozenge) are the alternatives. Watch for GI upset and psychiatric changes.' + (h === 'b' ? ' Unlike naltrexone, it does not interact with her oxycodone.' : ''));
+    }
     if (h === 'd') {
       if (c === 'a') return gray('These details do not match', 'Buprenorphine and supervised daily dosing describe treatment for opioid use disorder, but the disorder here is alcohol. Pick the opioid disorder (1b) or a different situation.');
       return ok('E', 'Two relapses on buprenorphine and a wish for structure point to methadone: a full mu opioid agonist dispensed daily at an opioid treatment program, with no risk of precipitated withdrawal and possibly better retention in treatment. Get a baseline ECG, since methadone prolongs the QTc.' + (s === 'b' ? ' It is metabolized by the liver, so dose cautiously with cirrhosis.' : ''));
@@ -849,6 +908,8 @@ var DRUGS = {
     E: { mech: 'Blocks presynaptic alpha-2 autoreceptors, increasing norepinephrine and serotonin release; also blocks 5-HT2, 5-HT3 and H1 receptors.', ind: ['Major depressive disorder, especially with insomnia, poor appetite or weight loss', 'Often used in older adults'], se: ['Sedation', 'Increased appetite, weight gain, raised lipids', 'Dry mouth', 'Rare agranulocytosis'], ci: ['An MAOI within 14 days', 'Caution with obesity or diabetes'] },
     F: { mech: '5-HT2A antagonist and weak serotonin reuptake inhibitor; also blocks alpha-1 and H1 receptors.', ind: ['Insomnia at low doses (off-label)', 'Major depressive disorder at higher doses'], se: ['Sedation', 'Orthostatic hypotension (alpha-1 blockade)', 'Priapism, a urological emergency', 'QT prolongation'], ci: ['An MAOI within 14 days', 'Caution in older adults (falls)'] },
     G: { mech: 'Tricyclic: blocks serotonin and norepinephrine reuptake; also blocks muscarinic, H1 and alpha-1 receptors, and sodium channels in overdose.', ind: ['Depression (not first line)', 'Neuropathic pain', 'Migraine prevention', 'Insomnia at low doses'], se: ['Anticholinergic: dry mouth, constipation, urinary retention, confusion', 'Sedation, weight gain, orthostasis', 'QRS widening and arrhythmia', 'Lethal in overdose: coma, convulsions, cardiotoxicity (treat with sodium bicarbonate)'], ci: ['Recent myocardial infarction or conduction disease', 'High suicide risk (overdose)', 'Older adults (anticholinergic burden)', 'Narrow-angle glaucoma, urinary retention'] },
+    I: { mech: 'Selective serotonin reuptake inhibitor with a long half-life (7–15 days, active metabolite).', ind: ['Major depressive disorder', 'Anxiety disorders and OCD (higher doses)', 'Youth: FDA-approved for depression from age 8'], se: ['Activating: insomnia, anxiety early on', 'GI upset, sexual dysfunction', 'No discontinuation problems thanks to its long half-life', 'Boxed warning: suicidal thinking under age 25'], ci: ['Major CYP450 interactions (e.g., tamoxifen, antiretrovirals)', 'An MAOI recently'] },
+    J: { mech: 'Selective serotonin reuptake inhibitor.', ind: ['Major depressive disorder', 'Anxiety disorders'], se: ['Dose-dependent QTc prolongation and torsades (boxed warning)', 'GI upset, sexual dysfunction', 'Boxed warning: suicidal thinking under age 25'], ci: ['Long QT or QT-prolonging drugs', 'Few CYP450 interactions: a good choice when interactions matter (e.g., tamoxifen)'] },
     H: { mech: 'NMDA glutamate receptor antagonist (the S-enantiomer of ketamine); a glutamate surge promotes new synapses.', ind: ['Treatment-resistant depression, with an oral antidepressant', 'Major depression with acute suicidal thoughts'], se: ['Dissociation and sedation after each dose', 'Dizziness and nausea', 'Transient rise in blood pressure', 'Potential for misuse'], ci: ['Aneurysm or arteriovenous malformation', 'Past intracerebral hemorrhage', 'Caution with uncontrolled hypertension or psychosis', 'No driving on the day of a dose'] }
   },
   'mood-stabilizers': {
@@ -883,10 +944,24 @@ var DRUGS = {
     C: { mech: 'Irreversibly inhibits aldehyde dehydrogenase, so acetaldehyde builds up when alcohol is consumed.', ind: ['Alcohol use disorder in a motivated patient seeking abstinence, ideally with supervised dosing'], se: ['Disulfiram-alcohol reaction: flushing, headache, vomiting, palpitations, hypotension', 'Hepatitis', 'Neuropathy, metallic taste'], ci: ['Alcohol within the past 12 hours', 'Severe heart disease', 'Psychosis', 'Pregnancy; metronidazole'] },
     D: { mech: 'High-affinity mu opioid partial agonist (and kappa antagonist), with a ceiling on respiratory depression.', ind: ['Opioid use disorder: detox and maintenance, including pregnancy', 'Pain'], se: ['Precipitated withdrawal if started too soon', 'Constipation, nausea, headache'], ci: ['Caution with severe liver impairment', 'Caution with benzodiazepines or respiratory disease'] },
     E: { mech: 'Long-acting full mu opioid agonist; also an NMDA antagonist.', ind: ['Opioid use disorder maintenance through an opioid treatment program, including pregnancy', 'Chronic pain'], se: ['QT prolongation and torsades de pointes', 'Respiratory depression, especially early in dosing or with benzodiazepines', 'Constipation, sedation; many CYP interactions'], ci: ['Long QT', 'Significant respiratory depression', 'Paralytic ileus'] },
+    G: { mech: 'α4β2 nicotinic acetylcholine receptor partial agonist: mimics nicotine and blocks its reward.', ind: ['Smoking cessation'], se: ['GI upset (nausea)', 'Psychiatric changes: monitor mood and behavior'], ci: ['Alternatives: bupropion; nicotine replacement (patch plus gum or lozenge)'] },
     F: { mech: 'Short-acting, high-affinity competitive mu opioid antagonist that displaces the agonist.', ind: ['Opioid overdose reversal (nasal, IM or IV)', 'Combined with buprenorphine to deter injection'], se: ['Acute withdrawal and agitation', 'Short half-life: overdose can return with long-acting opioids'], ci: ['None in an emergency'] }
   }
 };
 MODULES.forEach(function (m) { m.drugs = DRUGS[m.id] || null; });
+/* ---------- Simple cards for answers that are actions, not drugs ---------- */
+var CARDS = {
+  'ap-side': {
+    A: { sum: 'Acute dystonia: sustained contractions of the tongue, face, eyes, neck or back within hours to days; highest risk in young men on high-potency drugs.', sec: [['Treat', ['IV anticholinergic: benztropine or diphenhydramine', 'Works within minutes']], ['Look-alikes', ['Torticollis or oculogyric crisis after years → tardive dystonia', 'Rigidity with fever and confusion → NMS']]] },
+    B: { sum: 'Akathisia: subjective inner restlessness, like restless legs; can be very distressing. Most common with aripiprazole.', sec: [['Treat', ['Hold or lower the antipsychotic', 'Propranolol (beta-blocker); benzodiazepines also used']], ['Look-alikes', ['Anxiety or agitation from the illness itself']]] },
+    C: { sum: 'Drug-induced parkinsonism: masked face, bradykinesia, resting tremor, shuffling gait, cogwheel rigidity, from D2 blockade in the nigrostriatal pathway.', sec: [['Treat', ['Lower the dose', 'Add an anticholinergic (benztropine)', 'Switch to an agent with lower EPS risk (quetiapine is preferred in Parkinson disease)']]] },
+    D: { sum: 'Neuroleptic malignant syndrome: fever, rigidity (lead-pipe), autonomic instability and altered mental status; CK above 1000 IU/L, high WBC, kidney injury from rhabdomyolysis. Any antipsychotic or dopamine-blocking antiemetic, any time.', sec: [['Treat', ['Stop the offending drug immediately', 'Supportive care, often ICU', 'Benzodiazepines; dantrolene; bromocriptine or amantadine', 'ECT is also used']], ['Versus serotonin syndrome', ['Serotonin syndrome: fast onset, tremor, hyperreflexia, clonus; cyproheptadine']]] },
+    E: { sum: 'Tardive dyskinesia: repetitive, involuntary movements after prolonged D2 blockade (grimacing, lip smacking, tongue movements, blinking, limb and trunk movements). Tardive dystonia is one form.', sec: [['Treat', ['Switch antipsychotics', 'Often treatment-resistant and can be permanent']], ['Prevent', ['Highest risk with high-potency typicals; lowest with clozapine']]] },
+    F: { sum: 'Agranulocytosis: the signature risk of clozapine, which is why it requires regular neutrophil monitoring.', sec: [['Treat', ['Stop clozapine', 'Monitor blood counts; watch for infection']], ['Other clozapine risks', ['Seizures, myocarditis, sialorrhea, constipation, weight gain']]] }
+  }
+};
+MODULES.forEach(function (m) { m.cards = CARDS[m.id] || null; });
+
 /* ---------- Therapy cards: how it works, format, uses, key concepts, look-alikes ---------- */
 var T_CBT = { how: 'Thoughts, feelings and behaviors interact in a cycle (the CBT triangle). Changing thoughts or behaviors changes feelings.',
   fmt: ['Structured and manual-guided, with homework between sessions', 'Usually weekly; classically 8 to 16 one-hour sessions over weeks to months'],
@@ -978,7 +1053,24 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   function st() { return states[mod.id]; }
   function cur() { return mod.slots.map(function (s) { return st()[s.id]; }); }
   function diag(arr) { if (arr.some(function (v) { return !v; })) return null; return mod.diagnose.apply(null, arr); }
-  function ansName(L) { for (var i = 0; i < mod.answers.length; i++) if (mod.answers[i][0] === L) return L + '. ' + mod.answers[i][1]; return L; }
+  // Up to MAXC answer choices per case: the accepted answer(s), then the nearest distractors, re-lettered A, B, C...
+  var MAXC = 6, shownSet = null, lastKey = null;
+  function hash(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function choicesFor(c, r) {
+    var all = mod.answers.map(function (a) { return a[0]; });
+    if (all.length <= MAXC) return all;
+    if (!r) return all.slice(0, MAXC);
+    var acc = r.kind === 'ok' ? [r.letter].concat(r.also) : [];
+    var seed = mod.id + c.join('');
+    var rest = all.filter(function (L) { return acc.indexOf(L) < 0; }).map(function (L) {
+      var f = fixesFor(L, c); return { L: L, d: f ? f[0].length : 9, t: hash(seed + L) };
+    });
+    rest.sort(function (a, b) { return a.d - b.d || a.t - b.t; });
+    var pick = acc.concat(rest.slice(0, MAXC - acc.length).map(function (x) { return x.L; }));
+    return all.filter(function (L) { return pick.indexOf(L) > -1; });
+  }
+  function disp(L) { var i = shownSet ? shownSet.indexOf(L) : -1; return i < 0 ? '' : String.fromCharCode(65 + i); }
+  function ansName(L) { for (var i = 0; i < mod.answers.length; i++) if (mod.answers[i][0] === L) { var d = disp(L); return (d ? d + '. ' : '') + mod.answers[i][1]; } return L; }
   function label(r) { return !r ? '' : r.kind === 'ok' ? [r.letter].concat(r.also).map(ansName).join(' or ') : r.title; }
 
   function allCombos() {
@@ -1036,7 +1128,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
       t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
     });
     document.getElementById('panel').setAttribute('aria-labelledby', 'tab-' + id);
-    buildToolbar(); buildTray(); buildAnswers(); buildRuler();
+    lastKey = null; buildToolbar(); buildTray(); buildRuler();
     document.getElementById('footer').textContent = 'Example cases for teaching. ' + mod.footer;
     update();
   }
@@ -1088,8 +1180,9 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   function buildAnswers() {
     var a = document.getElementById('answers'); a.textContent = '';
     mod.answers.forEach(function (x) {
+      if (shownSet && shownSet.indexOf(x[0]) < 0) return;
       var b = el('button', 'ans'); b.type = 'button'; b.dataset.letter = x[0]; b.id = 'ans-' + x[0];
-      b.appendChild(el('span', 'let', x[0])); b.appendChild(el('span', 'txt', x[1])); b.appendChild(el('span', 'flag'));
+      b.appendChild(el('span', 'let', disp(x[0]) || x[0])); b.appendChild(el('span', 'txt', x[1])); b.appendChild(el('span', 'flag'));
       b.addEventListener('click', function () { picked = x[0]; update(); });
       a.appendChild(b);
     });
@@ -1158,7 +1251,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
     slots.forEach(function (id) { ul.appendChild(slotItem(id, st()[id], (mod.needs[L] && mod.needs[L][id]) || ('Changing this slot is part of the quickest route to ' + L + '.'))); });
     box.appendChild(ul);
     var p = el('p', 'fix');
-    p.appendChild(txt(fixes.length > 1 ? 'Quickest ways to make it ' + L + ': ' : 'Quickest way to make it ' + L + ': '));
+    p.appendChild(txt((fixes.length > 1 ? 'Quickest ways to make it ' : 'Quickest way to make it ') + ansName(L).replace(/^[A-F]\. /, '') + ': '));
     fixes.slice(0, 3).forEach(function (f, i) { if (i) p.appendChild(txt(', or ')); p.appendChild(el('span', 'code', fixLine(f))); });
     p.appendChild(txt('.'));
     box.appendChild(p);
@@ -1189,7 +1282,8 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
       box.appendChild(el('p', '', r.why));
       var pr = mod.present && mod.present[CL];
       var isDx = mod.group !== 'Pharmacology';
-      if (mod.therapy && mod.therapy[CL]) box.appendChild(therapyCard(CL, false));
+      if (mod.cards && mod.cards[CL]) box.appendChild(simpleCard(CL, false));
+      else if (mod.therapy && mod.therapy[CL]) box.appendChild(therapyCard(CL, false));
       else if (mod.drugs && mod.drugs[CL]) box.appendChild(drugCard(CL, false, pr && pr.not));
       else if (pr) {
         var cols = el('div', 'pres');
@@ -1208,7 +1302,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
       var also = alsoWorks(r);
       var line = el('p', 'also');
       if (also.length) {
-        line.appendChild(el('span', 'alsolabel', 'Also gives ' + r.letter + ':'));
+        line.appendChild(el('span', 'alsolabel', 'Also gives this answer:'));
         also.forEach(function (p) {
           var cd = el('span', 'code pillcode', p[0] + p[1]);
           cd.title = mod.slots[p[0] - 1].name + ': ' + mod.slots[p[0] - 1].opts[p[1]];
@@ -1226,6 +1320,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
       if (picked) { box.appendChild(el('h3', '', 'Why not ' + ansName(picked))); bad = whyNot(box, picked); }
       if (picked && mod.drugs && mod.drugs[picked]) box.appendChild(drugCard(picked, true));
       if (picked && mod.therapy && mod.therapy[picked]) box.appendChild(therapyCard(picked, true));
+      if (picked && mod.cards && mod.cards[picked]) box.appendChild(simpleCard(picked, true));
       return { box: box, bad: bad };
     }
     box.classList.add('no');
@@ -1235,6 +1330,7 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
     if (bad.length) box.appendChild(el('p', '', 'The highlighted slots in the case are the ones to look at. Pick again, or show the answer.'));
     if (mod.drugs && mod.drugs[picked]) box.appendChild(drugCard(picked, true));
     if (mod.therapy && mod.therapy[picked]) box.appendChild(therapyCard(picked, true));
+    if (mod.cards && mod.cards[picked]) box.appendChild(simpleCard(picked, true));
     return { box: box, bad: bad };
   }
 
@@ -1263,6 +1359,18 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   }
 
 
+  function simpleCard(L, compact) {
+    var d = mod.cards[L], card = el('div', 'card' + (compact ? ' compact' : ''));
+    if (compact) card.appendChild(el('h3', '', 'About: ' + ansName(L).replace(/^[A-F]\. /, '')));
+    card.appendChild(el('p', 'mech', d.sum));
+    var grid = el('div', 'pres');
+    (compact ? d.sec.slice(0, 1) : d.sec).forEach(function (sx) {
+      var c = el('div'); c.appendChild(el('h3', '', sx[0]));
+      var u = el('ul', 'plist'); sx[1].forEach(function (t) { u.appendChild(el('li', '', t)); }); c.appendChild(u); grid.appendChild(c);
+    });
+    card.appendChild(grid);
+    return card;
+  }
   // Therapy card: how it works, format, uses, key concepts, look-alikes (compact = for a wrong pick).
   function therapyCard(L, compact) {
     var d = mod.therapy[L], card = el('div', 'card' + (compact ? ' compact' : ''));
@@ -1291,6 +1399,8 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   var showBtn = document.getElementById('show'), retryBtn = document.getElementById('retry');
   function update() {
     var c = cur(), r = diag(c);
+    var key = mod.id + '|' + c.join(',');
+    if (key !== lastKey) { lastKey = key; shownSet = choicesFor(c, r); buildAnswers(); }
     var fbEl = document.getElementById('feedback'); fbEl.textContent = '';
     document.querySelectorAll('#answers .fb').forEach(function (x) { x.remove(); });
     var bad = [];
@@ -1453,8 +1563,8 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
   };
   var cur = 'study', PDF_URL = DOCS.study.url, PAGES = STUDY_PAGES;
   var cache = {};
-  var PRACTICE_PAGE = {"bipolar": 3, "anxiety": 7, "psychotic": 11, "personality": 15, "antidepressants": 5, "mood-stabilizers": 6, "anxiety-drugs": 10, "antipsychotics": 13, "substance-drugs": 19, "therapy-name": 20, "therapy-match": 21};
-  var TAB_PAGE = { bipolar: 2, anxiety: 8, psychotic: 12, personality: 17, antidepressants: 6, 'mood-stabilizers': 7, 'anxiety-drugs': 11, antipsychotics: 15, 'substance-drugs': 22, 'therapy-name': 23, 'therapy-match': 24 };
+  var PRACTICE_PAGE = {"bipolar": 3, "anxiety": 7, "psychotic": 11, "personality": 15, "antidepressants": 5, "mood-stabilizers": 6, "anxiety-drugs": 10, "antipsychotics": 13, "substance-drugs": 19, "ap-side": 14, "therapy-name": 20, "therapy-match": 21};
+  var TAB_PAGE = { bipolar: 2, anxiety: 8, psychotic: 12, personality: 17, antidepressants: 6, 'mood-stabilizers': 7, 'anxiety-drugs': 11, antipsychotics: 15, 'substance-drugs': 22, 'ap-side': 16, 'therapy-name': 23, 'therapy-match': 24 };
   var viewer = document.getElementById('viewer'), canvas = document.getElementById('vcanvas'), body = document.getElementById('vbody');
   var jump = document.getElementById('vjump'), pgEl = document.getElementById('vpg');
   var openA = document.getElementById('vopen'), dlA = document.getElementById('vdl');
