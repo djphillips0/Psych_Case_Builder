@@ -1,0 +1,1548 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Psychiatry Case Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Nunito+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: topic tabs; case card on the left (stem with four drop slots, stacked answer rows, feedback), option tray on the right; stacks on phones. */
+:root {
+  --bg: #EEF1F5;
+  --card: #FBFCFD;
+  --ink: #1D2840;
+  --body: #34405A;
+  --muted: #5C677D;
+  --line: #D5DBE4;
+  --accent: #9A4E12;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #F6E7D8;
+  --zone: #F3F5F8;
+  --good: #23643F;
+  --good-soft: #DDEFE4;
+  --bad: #A2342A;
+  --bad-soft: #F8E1DE;
+  --warn: #8A5A00;
+  --warn-soft: #FBEFD2;
+  --focus: #2F5DA8;
+  --display: 'Domine', Georgia, serif;
+  --text: 'Nunito Sans', 'Segoe UI', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121826; --card: #1B2333; --ink: #ECEEF2; --body: #C9CFDA; --muted: #9AA4B6; --line: #2D3749;
+    --accent: #EBA25C; --accent-ink: #1B1306; --accent-soft: #3A2817; --zone: #151C2A;
+    --good: #7FCB9D; --good-soft: #17352A; --bad: #F2948A; --bad-soft: #3D1F1C; --warn: #F0C46A; --warn-soft: #3A2E12; --focus: #8FB3F0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121826; --card: #1B2333; --ink: #ECEEF2; --body: #C9CFDA; --muted: #9AA4B6; --line: #2D3749;
+  --accent: #EBA25C; --accent-ink: #1B1306; --accent-soft: #3A2817; --zone: #151C2A;
+  --good: #7FCB9D; --good-soft: #17352A; --bad: #F2948A; --bad-soft: #3D1F1C; --warn: #F0C46A; --warn-soft: #3A2E12; --focus: #8FB3F0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--body); font-family: var(--text); font-size: 16px; line-height: 1.5; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--display); font-weight: 700; color: var(--ink); font-size: clamp(26px, 3.2vw, 36px); line-height: 1.15; margin: 4px 0 0; text-wrap: balance; }
+.sub { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.tabs { display: flex; flex-direction: column; gap: 6px; }
+.tabrow { display: flex; flex-wrap: wrap; align-items: end; gap: 4px; border-bottom: 2px solid var(--line); }
+.tabgroup { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); width: 112px; flex: none; padding: 0 4px 12px 0; }
+@media (max-width: 620px) { .tabgroup { width: 100%; padding-bottom: 2px; } }
+.tab { border: none; background: none; color: var(--muted); font-weight: 800; font-size: 15px; padding: 10px 16px; border-bottom: 3px solid transparent; margin-bottom: -2px; border-radius: 8px 8px 0 0; }
+.tab:hover { color: var(--ink); background: var(--card); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); background: var(--card); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toolbar .label { font-size: 13px; font-weight: 700; color: var(--muted); margin-right: 2px; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, .chip:focus-visible, .zone:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.btn { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 14px; }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn.preset { font-family: var(--mono); font-weight: 600; }
+.btn.preset[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; min-width: 0; }
+.panel h2 { font-family: var(--display); font-weight: 700; color: var(--ink); font-size: 20px; margin: 0 0 12px; }
+.code { font-family: var(--mono); font-weight: 600; font-size: 14px; color: var(--muted); }
+.stem { font-size: 19px; line-height: 1.85; color: var(--ink); margin: 0; }
+.zone { display: inline; border: 2px dashed var(--line); background: var(--zone); border-radius: 8px; padding: 2px 8px; color: var(--muted); font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.zone .tag { font-family: var(--mono); font-size: 13px; color: var(--accent); margin-right: 6px; font-weight: 600; }
+.zone.filled { border-style: solid; border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+.zone.over { border-color: var(--focus); background: var(--zone); }
+.zone.reject { border-color: var(--warn); }
+.zone.conflict { border-color: var(--bad); background: var(--bad-soft); border-width: 3px; }
+.zone.conflict .tag { color: var(--bad); }
+.qlabel { margin: 20px 0 8px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.answers { display: flex; flex-direction: column; gap: 8px; }
+.ans { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 12px 16px; font-size: 16px; line-height: 1.35; }
+.ans:hover:not(:disabled) { border-color: var(--accent); background: var(--zone); }
+.ans .let { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-family: var(--display); font-weight: 700; color: var(--accent); font-size: 15px; }
+.ans .txt { flex: 1; min-width: 0; }
+.ans:disabled { opacity: 1; cursor: default; }
+.ans:disabled:not(.right):not(.wrong) { opacity: .6; }
+.ans .flag { flex: none; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ans.right { border-color: var(--good); background: var(--good-soft); }
+.ans.right .let { border-color: var(--good); background: var(--good); color: var(--card); }
+.ans.right .flag { color: var(--good); }
+.ans.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.ans.wrong .let { border-color: var(--bad); background: var(--bad); color: var(--card); }
+.ans.wrong .flag { color: var(--bad); }
+.ruler { margin-top: 18px; }
+.ruler .head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); font-weight: 700; }
+.track { position: relative; height: 54px; margin-top: 6px; }
+.track .bar { position: absolute; left: 0; right: 0; top: 22px; height: 6px; border-radius: 3px; background: var(--line); }
+.track .tick { position: absolute; top: 14px; width: 2px; height: 22px; background: var(--muted); transform: translateX(-1px); }
+.track .tick span { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.track .mark { position: absolute; top: 15px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); border: 3px solid var(--card); box-shadow: 0 0 0 2px var(--accent); transform: translateX(-10px); transition: left .3s ease; }
+@media (prefers-reduced-motion: reduce) { .track .mark, .zone { transition: none; } }
+.verdict { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+.verdict-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.fb { border-radius: 12px; padding: 16px 18px; background: var(--zone); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.fb .dx { font-family: var(--display); font-weight: 700; color: var(--ink); font-size: 21px; line-height: 1.25; margin: 0; }
+.fb p { margin: 0; }
+.fb.ok { background: var(--good-soft); border-color: var(--good); }
+.fb.no { background: var(--bad-soft); border-color: var(--bad); }
+.fb.gray { background: var(--warn-soft); border-color: var(--warn); }
+.pill { align-self: flex-start; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; color: var(--card); }
+.fb.ok .pill { background: var(--good); }
+.fb.no .pill { background: var(--bad); }
+.fb.gray .pill { background: var(--warn); }
+.fb h3 { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 6px 0 0; }
+.fb ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.fb li { display: flex; flex-direction: column; gap: 2px; }
+.fb li .what { font-weight: 700; color: var(--ink); }
+.fb li .what .code { color: var(--bad); margin-right: 6px; }
+.fb.ok li .what .code, .swaps .code, .fix .code { color: var(--accent); }
+.fix { font-size: 15px; }
+.pres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; border-top: 1px solid var(--line); padding-top: 10px; }
+@media (max-width: 620px) { .pres { grid-template-columns: minmax(0, 1fr); } }
+.fb ul.plist { list-style: disc; padding-left: 20px; display: block; margin-top: 6px; }
+.fb ul.plist li { display: list-item; margin: 0 0 4px; font-size: 15px; line-height: 1.4; }
+.fb ul.plist li b { color: var(--ink); font-weight: 700; }
+.also { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.alsolabel { font-weight: 800; color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-right: 4px; }
+.pillcode { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; cursor: help; }
+.card { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+.card .pres { border-top: none; padding-top: 0; }
+.card .mech { font-size: 15px; }
+.card .mech b { color: var(--ink); }
+.card.compact { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.card.compact h3 { margin: 0; color: var(--ink); }
+#answers .fb { margin: 2px 0 6px; }
+.none { color: var(--muted); }
+.swaps { display: flex; flex-direction: column; gap: 6px; }
+.swaps ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.swaps li { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; font-size: 15px; }
+.tray { display: flex; flex-direction: column; gap: 18px; }
+.group h3 { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin: 0 0 8px; }
+.chips { display: flex; flex-direction: column; gap: 8px; }
+.chip { display: flex; gap: 10px; align-items: baseline; text-align: left; width: 100%; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 9px 12px; font-size: 15px; line-height: 1.35; cursor: grab; touch-action: manipulation; }
+.chip:hover { border-color: var(--accent); }
+.chip .k { font-family: var(--mono); font-weight: 600; color: var(--accent); flex: none; }
+.chip.used { background: var(--accent-soft); border-color: var(--accent); }
+.chip.dragging { opacity: .5; }
+footer { font-size: 13px; color: var(--muted); max-width: 110ch; }
+</style>
+
+<div id="gate" style="position:fixed;inset:0;z-index:999;background:var(--bg,#EEF1F5);display:grid;place-items:center;padding:16px">
+<div id="gform" style="background:var(--card,#fff);border:1px solid var(--line,#D5DBE4);border-radius:14px;padding:28px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:12px;font-family:'Nunito Sans',Arial,sans-serif">
+<div style="font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent,#9A4E12)">MBB 2026 · Psychiatry practice</div>
+<h1 style="margin:0;font-size:24px">Psychiatry Case Builder</h1>
+<label>Username<input id="gu" autocomplete="username" style="display:block;width:100%;font:inherit;padding:8px;border:1px solid var(--line,#ccc);border-radius:8px;margin-top:4px"></label>
+<label>Password<input id="gp" type="password" autocomplete="current-password" style="display:block;width:100%;font:inherit;padding:8px;border:1px solid var(--line,#ccc);border-radius:8px;margin-top:4px"></label>
+<button class="btn" type="button" id="gbtn">Enter</button>
+<p id="gerr" role="alert" style="margin:0;color:var(--bad,#A2342A);font-size:14px"></p>
+</div></div>
+<script>
+(function(){var g=document.getElementById('gate');
+try{if(sessionStorage.getItem('mbbpsych')==='1'){g.hidden=true;g.style.display='none';}}catch(e){}
+function go(){var u=document.getElementById('gu').value.trim().toLowerCase(),p=document.getElementById('gp').value;
+if(u==='mbb'&&p==='Psych'){g.hidden=true;g.style.display='none';try{sessionStorage.setItem('mbbpsych','1')}catch(e){}}
+else{document.getElementById('gerr').textContent='Username or password not recognized.';}}
+document.getElementById('gbtn').addEventListener('click',go);
+['gu','gp'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go();}});});})();
+</script>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">MBB 2026 · Psychiatry practice</div>
+      <h1>Psychiatry Case Builder</h1>
+      <p class="sub">Choose a topic, then drag an option into each slot of the case, or click an option to drop it into its slot. Pick the best answer to see what fits and what rules it out.</p>
+      <p style="margin:12px 0 0;display:flex;flex-wrap:wrap;gap:8px"><button class="btn sheetlink" type="button" id="sheets-btn">Study sheets (PDF)</button><button class="btn sheetlink" type="button" id="practice-btn">Practice sheets: fill in the blanks (PDF)</button></p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Topics" id="tabs"></div>
+    <div class="toolbar" role="group" aria-label="Preset cases" id="toolbar"></div>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="case-h" role="tabpanel" id="panel">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
+        <h2 id="case-h">The case</h2>
+        <span class="code" id="code"></span>
+      </div>
+      <p class="stem" id="stem"></p>
+
+      <div class="ruler" id="ruler" aria-hidden="true">
+        <div class="head"><span id="ruler-label"></span><span id="ruler-val"></span></div>
+        <div class="track" id="track"></div>
+      </div>
+
+      <p class="qlabel" id="q-label">Answer choices</p>
+      <div class="answers" id="answers" role="group" aria-labelledby="q-label"></div>
+
+      <div class="verdict">
+        <p class="hint" id="status" aria-live="polite"></p>
+        <div id="feedback" aria-live="polite"></div>
+        <div class="verdict-row">
+          <button class="btn" id="show">Show answer</button>
+          <button class="btn" id="retry" hidden>Try again</button>
+        </div>
+        <div class="swaps" id="swaps-wrap" hidden>
+          <h3 class="qlabel" style="margin:4px 0 0">One swap that changes the answer</h3>
+          <ul id="swaps"></ul>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel tray" aria-label="Slot options" id="tray"></aside>
+  </div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+var MODULES = [];
+function ok(letter, why) { return { kind: 'ok', letter: letter, why: why }; }
+function gray(title, why) { return { kind: 'gray', letter: null, title: title, why: why }; }
+
+/* ---------- Bipolar spectrum ---------- */
+MODULES.push({
+  group: 'Diagnosis', id: 'bipolar', tab: 'Bipolar spectrum',
+  stem: ['A 34-year-old graphic designer comes to clinic with her partner. For ', 1, ', she has slept about 3 hours a night without feeling tired, talked rapidly, and started several new projects at once. ', 2, '. ', 3, '. ', 4, '. Which of the following is the most likely diagnosis?'],
+  slots: [
+    { id: 1, name: 'Course', opts: { a: 'the past 10 days', b: 'the past 5 days', c: 'the past 3 years, on and off, with stretches of low mood in between' } },
+    { id: 2, name: 'Severity', opts: { a: 'She is still working, and colleagues say she seems unusually productive', b: 'She was fired after secretly spending her savings on a new business', c: 'She says she has been chosen to redesign the national flag', d: 'She was admitted overnight after being found directing traffic' } },
+    { id: 3, name: 'History', opts: { a: 'Two years ago she had a month of low mood, poor sleep and thoughts of death', b: 'Her low periods have never lasted more than a few days', c: 'She has never had a period of low mood' } },
+    { id: 4, name: 'Exposure', opts: { a: 'She takes no medications, and her urine drug screen is negative', b: 'She started high-dose prednisone for asthma two weeks ago' } }
+  ],
+  answers: [['A', 'Bipolar I disorder'], ['B', 'Bipolar II disorder'], ['C', 'Cyclothymic disorder'], ['D', 'Substance/medication-induced bipolar disorder'], ['E', 'Narcissistic personality disorder']],
+  presets: [['a','b','c','a'], ['b','d','c','a'], ['b','a','a','a'], ['c','a','b','a'], ['a','c','c','b'], ['a','a','a','a']],
+  ruler: { label: 'Episode length against DSM-5 thresholds', max: 1095, ticks: [[4, '4 d'], [7, '7 d'], [730, '2 yr']], days: { a: 10, b: 5, c: 1095 }, text: { a: '10 days', b: '5 days', c: '3 years, on and off' } },
+  footer: 'Thresholds follow DSM-5-TR: hypomania 4 days or more, mania 7 days or more (any length if hospitalized), cyclothymic disorder 2 years. Bipolar I needs only one manic episode; no depression is required.',
+  needs: {
+    A: { 1: 'Bipolar I needs a distinct manic episode of 7 days or more (1a), unless she is hospitalized (2d).', 3: 'Course 1c and History 3c contradict each other, so one of them has to change first.', 2: 'Mania needs marked impairment, psychotic features or hospitalization (2b, 2c or 2d). This option describes hypomania.', 4: 'She started prednisone just before the symptoms, so a medication cause has to come first.' },
+    B: { 1: 'Hypomania is a distinct episode of 4 days or more (1a or 1b), not a 3-year on-and-off pattern.', 2: 'Hypomania means a clear change without marked impairment, psychosis or hospitalization (2a). This option is too severe.', 3: 'Bipolar II requires at least one past major depressive episode (3a).', 4: 'She started prednisone just before the symptoms, so a medication cause has to come first.' },
+    C: { 1: 'Cyclothymic disorder needs 2 years or more of fluctuating symptoms (1c).', 2: 'In cyclothymic disorder the highs stay mild (2a). This option is severe enough to be a full episode.', 3: 'There must be low periods that never reach a major depressive episode (3b).' },
+    D: { 1: 'This pattern began 3 years ago, long before the prednisone, so the drug cannot explain it.', 4: 'Nothing in the case links the symptoms to a substance or medication (4b would).' }
+  },
+  never: { E: 'Narcissistic personality disorder is a lifelong, stable pattern of grandiosity across settings. This case describes an episode of decreased need for sleep, rapid speech and increased activity, which a personality disorder does not explain. No slot option in this case makes E correct.' },
+  diagnose: function (c, s, h, e) {
+    if (c === 'c' && h === 'c') return gray('These details contradict each other', 'Course 1c describes stretches of low mood, but History 3c says she has never had one. Pick a different history.');
+    var note = '';
+    if (e === 'b') {
+      if (c !== 'c') return ok('D', 'The symptoms began after high-dose prednisone was started. When onset is tied to a drug and the picture fits its known effects, diagnose a substance/medication-induced disorder first.');
+      note = ' The prednisone started long after this 3-year pattern began, so it does not explain it.';
+    }
+    if (s === 'd') return ok('A', 'Hospitalization makes the episode manic at any length, so one manic episode is enough for bipolar I.' + note);
+    if (c === 'c') {
+      if (s === 'a' && h === 'b') return ok('C', 'Two years or more of hypomanic and depressive symptoms that never meet criteria for a full episode.' + note);
+      if (s === 'a' && h === 'a') return gray('Not cyclothymic: needs one more detail', 'A past major depressive episode rules out cyclothymic disorder. If any of the highs lasted 4 days or more, this is bipolar II; ask how long they lasted.' + note);
+      return gray('Needs the length of this episode', 'Marked impairment or psychosis rules out hypomania and cyclothymia. Mania needs 7 days or more unless she is hospitalized, so the answer depends on how long this high has lasted.' + note);
+    }
+    if (s === 'a') {
+      if (h === 'a') return ok('B', (c === 'a' ? 'Hypomania has no upper time limit: 10 days of symptoms without marked impairment is still hypomania. ' : 'Hypomania lasts 4 days or more without marked impairment. ') + 'Hypomania plus a past major depressive episode is bipolar II.');
+      return gray('Not on the list: other specified bipolar disorder', 'This is a hypomanic episode, but bipolar II also requires a past major depressive episode, and she has not had one. Watch for depression over time.');
+    }
+    if (c === 'a') return ok('A', s === 'b' ? 'Seven days or more with marked impairment in work or finances is a manic episode, so bipolar I.' : 'Seven days or more with psychotic features is a manic episode, so bipolar I.');
+    if (s === 'b') return gray('Gray zone: neither mania nor hypomania yet', 'Marked impairment rules out hypomania, but mania needs 7 days unless she is hospitalized. Strictly this is other specified bipolar disorder, and it may reach 7 days.');
+    return gray('Gray zone: discuss', 'Psychotic features rule out hypomania, and DSM-5 calls such an episode manic by definition. It has not reached 7 days and she is not admitted, so clinicians differ; most would treat it as mania.');
+  }
+});
+
+/* ---------- Anxiety disorders ---------- */
+MODULES.push({
+  group: 'Diagnosis', id: 'anxiety', tab: 'Anxiety',
+  stem: ['A 27-year-old accountant sees her primary care physician. For ', 1, ', ', 2, '. ', 3, '. ', 4, '. Which of the following is the most likely diagnosis?'],
+  slots: [
+    { id: 1, name: 'Duration', opts: { a: 'the past 3 weeks', b: 'the past 2 months', c: 'the past 8 months' } },
+    { id: 2, name: 'Focus', opts: {
+      a: 'she has worried most days about her job, her parents’ health, money and the weather, and cannot switch the worry off',
+      b: 'she has had sudden, unexpected surges of pounding heart, shaking and fear of dying that peak within minutes, and she worries constantly about the next one',
+      c: 'she has avoided buses, crowded stores and long lines, afraid she could not get out or get help if she felt unwell',
+      d: 'she has dreaded meetings and presentations, afraid colleagues will judge her as incompetent' } },
+    { id: 3, name: 'Impact', opts: { a: 'The symptoms cause her real distress, and she has cut back her hours at work', b: 'The symptoms bother her a little, but she has not changed anything she does and feels she copes well' } },
+    { id: 4, name: 'Exposure', opts: { a: 'She takes no medications and drinks one cup of coffee a day', b: 'She started a prescription stimulant for ADHD three weeks ago' } }
+  ],
+  answers: [['A', 'Generalized anxiety disorder'], ['B', 'Panic disorder'], ['C', 'Agoraphobia'], ['D', 'Social anxiety disorder'], ['E', 'Substance/medication-induced anxiety disorder']],
+  presets: [['c','a','a','a'], ['b','b','a','a'], ['c','c','a','a'], ['c','d','a','a'], ['a','b','a','b'], ['c','b','a','b']],
+  ruler: { label: 'Symptom length against DSM-5 thresholds', max: 365, ticks: [[30, '1 mo'], [182, '6 mo']], days: { a: 21, b: 60, c: 240 }, text: { a: '3 weeks', b: '2 months', c: '8 months' } },
+  footer: 'Thresholds follow DSM-5-TR: panic disorder needs 1 month of worry or behavior change after attacks; generalized anxiety, agoraphobia and social anxiety disorder need 6 months. Every anxiety disorder needs clinically significant distress or impairment.',
+  needs: {
+    A: { 1: 'Generalized anxiety disorder needs 6 months or more of worry (1c).', 2: 'GAD is diffuse, hard-to-control worry about many everyday things (2a).', 3: 'Every anxiety disorder needs real distress or impairment (3a).', 4: 'The stimulant started around the time her symptoms did, so a medication cause has to come first.' },
+    B: { 1: 'Panic disorder needs at least 1 month of worry or behavior change after the attacks (1b or 1c).', 2: 'Panic disorder needs recurrent, unexpected panic attacks (2b).', 3: 'Every anxiety disorder needs real distress or impairment (3a).', 4: 'The stimulant started around the time her symptoms did, so a medication cause has to come first.' },
+    C: { 1: 'Agoraphobia needs 6 months or more (1c).', 2: 'Agoraphobia is fear of places where escape or help would be hard, such as transport, crowds and lines (2c).', 3: 'Every anxiety disorder needs real distress or impairment (3a).', 4: 'The stimulant started around the time her symptoms did, so a medication cause has to come first.' },
+    D: { 1: 'Social anxiety disorder needs 6 months or more (1c).', 2: 'Social anxiety disorder is fear of being judged or embarrassed by others (2d).', 3: 'Every anxiety disorder needs real distress or impairment (3a).', 4: 'The stimulant started around the time her symptoms did, so a medication cause has to come first.' },
+    E: { 1: 'A medication-induced disorder needs symptoms that start during or soon after the exposure. Hers began before the stimulant (1a would fit).', 3: 'A substance-induced anxiety disorder still needs real distress or impairment (3a).', 4: 'Nothing in the case links the symptoms to a substance or medication (4b would).' }
+  },
+  never: {},
+  diagnose: function (c, s, h, e) {
+    if (h === 'b') return gray('Not a disorder', 'Anxiety that causes no real distress or impairment is not a disorder, whatever its focus or length. Every anxiety disorder requires clinically significant distress or impairment.');
+    var note = '';
+    if (e === 'b') {
+      if (c === 'a') return ok('E', 'Her symptoms began around the time she started a prescription stimulant 3 weeks ago. When onset follows a drug known to cause anxiety, diagnose substance/medication-induced anxiety disorder first.');
+      note = ' The stimulant started only 3 weeks ago, after her symptoms began, so it does not explain them.';
+    }
+    if (s === 'b') return c === 'a' ? gray('Panic attacks, not yet panic disorder', 'The attacks are there, but panic disorder needs at least 1 month of worry about more attacks or a change in behavior because of them.' + note) : ok('B', 'Recurrent, unexpected panic attacks followed by at least a month of worry about the next one.' + note);
+    if (s === 'a') return c === 'c' ? ok('A', 'Hard-to-control worry about many everyday areas for 6 months or more, with real distress or impairment.' + note) : gray('Too short for generalized anxiety disorder', 'GAD needs 6 months of worry. Shorter worry after a stressor may be an adjustment disorder; otherwise, reassess over time.' + note);
+    if (s === 'c') return c === 'c' ? ok('C', 'Fear and avoidance of places where escape or help would be hard, such as transport, crowds and lines, for 6 months or more. Agoraphobia is diagnosed whether or not panic disorder is present.' + note) : gray('Too short for agoraphobia', 'Agoraphobia needs 6 months or more of fear and avoidance.' + note);
+    return c === 'c' ? ok('D', 'Fear of being judged or embarrassed in social and performance situations for 6 months or more.' + note) : gray('Too short for social anxiety disorder', 'Social anxiety disorder needs 6 months or more.' + note);
+  }
+});
+
+/* ---------- Psychotic disorders ---------- */
+MODULES.push({
+  group: 'Diagnosis', id: 'psychotic', tab: 'Psychotic',
+  stem: ['A 23-year-old college student is brought to clinic by his roommate. For ', 1, ', ', 2, '. ', 3, '. ', 4, '. Which of the following is the most likely diagnosis?'],
+  slots: [
+    { id: 1, name: 'Duration', opts: { a: 'the past 10 days', b: 'the past 3 months', c: 'the past 9 months' } },
+    { id: 2, name: 'Symptoms', opts: {
+      a: 'he has heard voices commenting on what he does, has said that classmates can hear his thoughts, and his speech has become hard to follow',
+      b: 'he has been convinced that his neighbor is poisoning his water, though he hears no voices, speaks clearly, and still goes to class and work' } },
+    { id: 3, name: 'Mood', opts: { a: 'His mood has been normal throughout', b: 'He has also been severely depressed for most of this time, but the psychotic symptoms began several weeks before the low mood', c: 'The psychotic symptoms appear only while he is severely depressed and clear when his mood recovers' } },
+    { id: 4, name: 'Exposure', opts: { a: 'His urine drug screen is negative, and he takes no medications', b: 'The symptoms began the night he first tried methamphetamine at a party, and he has used it most days since' } }
+  ],
+  answers: [['A', 'Brief psychotic disorder'], ['B', 'Schizophreniform disorder'], ['C', 'Schizophrenia'], ['D', 'Schizoaffective disorder'], ['E', 'Delusional disorder'], ['F', 'Substance/medication-induced psychotic disorder']],
+  presets: [['a','a','a','a'], ['b','a','a','a'], ['c','a','a','a'], ['c','a','b','a'], ['c','b','a','a'], ['a','a','a','b']],
+  ruler: { label: 'Illness length against DSM-5 thresholds', max: 365, ticks: [[30, '1 mo'], [182, '6 mo']], days: { a: 10, b: 90, c: 270 }, text: { a: '10 days', b: '3 months', c: '9 months' } },
+  footer: 'Thresholds follow DSM-5-TR: brief psychotic disorder 1 day to under 1 month; schizophreniform 1 to 6 months; schizophrenia 6 months or more; delusional disorder 1 month or more; schizoaffective disorder needs 2 weeks of psychosis without mood symptoms.',
+  needs: {
+    A: { 1: 'Brief psychotic disorder lasts at least 1 day but less than 1 month (1a).', 3: 'The psychosis must not be explained by a mood episode (3a).', 4: 'The psychosis began with methamphetamine use, so a substance cause has to come first.' },
+    B: { 1: 'Schizophreniform disorder lasts 1 to 6 months (1b).', 2: 'It needs 2 or more core symptoms, such as hallucinations plus disorganized speech (2a).', 3: 'The psychosis must not be explained by mood episodes (3a).', 4: 'The psychosis began with methamphetamine use, so a substance cause has to come first.' },
+    C: { 1: 'Schizophrenia needs 6 months or more of illness (1c).', 2: 'It needs 2 or more core symptoms, such as hallucinations plus disorganized speech (2a).', 3: 'The psychosis must not be explained by mood episodes (3a).', 4: 'The psychosis began with methamphetamine use, so a substance cause has to come first.' },
+    D: { 1: 'Schizoaffective disorder needs time for weeks of psychosis without mood symptoms plus mood episodes for most of the illness (1b or 1c).', 2: 'It needs the full schizophrenia symptom picture, not delusions alone (2a).', 3: 'Major mood episodes for most of the illness, plus psychosis without mood symptoms for at least 2 weeks (3b).', 4: 'The psychosis began with methamphetamine use, so a substance cause has to come first.' },
+    E: { 1: 'Delusional disorder needs 1 month or more (1b or 1c).', 2: 'Delusional disorder means delusions only, with no prominent hallucinations or disorganization and functioning intact (2b).', 3: 'Any mood episodes must be brief compared with the delusions (3a).', 4: 'The psychosis began with methamphetamine use, so a substance cause has to come first.' },
+    F: { 4: 'Nothing in the case links the psychosis to a substance or medication (4b would).' }
+  },
+  never: {},
+  diagnose: function (c, s, h, e) {
+    if (e === 'b') return ok('F', 'The psychosis began when he started methamphetamine, and he is still using it, so a substance-induced psychotic disorder comes first. If psychosis lasted about a month after he stopped, a primary psychotic disorder would become likely.');
+    if (h === 'b' && c === 'a') return gray('These details contradict each other', 'Psychosis that began several weeks before the low mood cannot fit an illness that has lasted only 10 days.');
+    if (h === 'c') return gray('Not on the list: major depression with psychotic features', 'The psychosis occurs only during depressive episodes, so it is part of the mood disorder rather than a separate psychotic disorder.');
+    if (s === 'a') {
+      if (h === 'b') return ok('D', 'Major depressive episodes for most of the illness, plus psychotic symptoms for weeks without any mood episode. That combination is schizoaffective disorder.');
+      if (c === 'a') return ok('A', 'Psychotic symptoms for at least 1 day but less than 1 month. If he returns fully to baseline, the diagnosis holds.');
+      if (c === 'b') return ok('B', 'Schizophrenia-type symptoms lasting 1 to 6 months. Decline in functioning is not required.');
+      return ok('C', 'Two or more core symptoms (hallucinations, delusions, disorganized speech) with 6 months or more of illness.');
+    }
+    if (h === 'b') return gray('Mixed picture: discuss', 'Delusions alone, with depression for most of the illness. Delusional disorder needs mood episodes to be brief compared with the delusions, and schizoaffective disorder needs the full schizophrenia symptom picture. Neither fits cleanly.');
+    if (c === 'a') return ok('A', 'A single fixed delusion for only 10 days counts as brief psychotic disorder: one psychotic symptom for at least 1 day but less than 1 month.');
+    return ok('E', 'A non-bizarre delusion for 1 month or more, with no prominent hallucinations or disorganization and functioning largely intact.');
+  }
+});
+
+/* ---------- Personality disorders ---------- */
+MODULES.push({
+  group: 'Diagnosis', id: 'personality', tab: 'Personality',
+  stem: ['A 31-year-old warehouse supervisor is referred by his employer’s health program after conflicts at work. ', 1, ' ', 2, '. ', 3, '. ', 4, '. Which of the following is the most likely diagnosis?'],
+  slots: [
+    { id: 1, name: 'Onset', opts: { a: 'Since his teens, at work and at home,', b: 'Since a severe concussion in a car crash 4 months ago,', c: 'Since his divorce 2 months ago,' } },
+    { id: 2, name: 'View of others', opts: {
+      a: 'he has assumed people are trying to exploit or deceive him and reads hidden insults into harmless remarks',
+      b: 'he has seemed indifferent to other people and unmoved by praise or criticism',
+      c: 'he has been sure that people will criticize or reject him and avoids anyone he is not certain will like him',
+      d: 'he has swung between idealizing and devaluing the people close to him and makes frantic efforts to avoid being left' } },
+    { id: 3, name: 'Relationships', opts: { a: 'He says he wishes he had close friends and a partner', b: 'He says he has no interest in close relationships and prefers to be alone' } },
+    { id: 4, name: 'Behavior', opts: { a: 'His speech and dress are ordinary, and he has no unusual beliefs', b: 'He dresses eccentrically, speaks in vague, metaphor-heavy ways and believes he can sense what strangers feel from across a room' } }
+  ],
+  answers: [['A', 'Paranoid personality disorder'], ['B', 'Schizoid personality disorder'], ['C', 'Schizotypal personality disorder'], ['D', 'Avoidant personality disorder'], ['E', 'Borderline personality disorder']],
+  presets: [['a','a','b','a'], ['a','b','b','a'], ['a','a','b','b'], ['a','c','a','a'], ['a','d','a','a'], ['a','a','a','a']],
+  ruler: null,
+  footer: 'Personality disorders are enduring patterns that begin by adolescence or early adulthood and show up across settings. Cluster A: paranoid, schizoid, schizotypal. Cluster B includes borderline. Cluster C includes avoidant.',
+  needs: (function () {
+    var onset = 'A personality disorder is an enduring pattern that starts by adolescence or early adulthood and shows up across settings (1a).';
+    var odd = 'Eccentric dress, odd speech and magical thinking point to schizotypal personality disorder instead (4a).';
+    return {
+      A: { 1: onset, 2: 'Paranoid PD centers on pervasive distrust: assuming others mean to exploit, harm or deceive him (2a).', 4: odd },
+      B: { 1: onset, 2: 'Schizoid PD is detachment: indifference to others and to praise or criticism (2b).', 3: 'Schizoid PD means no desire for close relationships (3b).', 4: odd },
+      C: { 1: onset, 2: 'Schizotypal PD’s discomfort with people comes from suspiciousness or social anxiety, not unstable, idealizing relationships (2a, 2b or 2c).', 4: 'Schizotypal PD needs odd beliefs or magical thinking, eccentric behavior or odd speech (4b).' },
+      D: { 1: onset, 2: 'Avoidant PD is fear of criticism and rejection (2c).', 3: 'In avoidant PD he wants relationships but fears them (3a).', 4: odd },
+      E: { 1: onset, 2: 'Borderline PD centers on unstable relationships, idealizing and devaluing, and fear of abandonment (2d).', 3: 'Frantic efforts to avoid abandonment imply he wants closeness (3a).', 4: 'Eccentric dress and magical thinking point to cluster A, not borderline PD (4a).' }
+    };
+  })(),
+  never: {},
+  diagnose: function (c, s, h, e) {
+    if (c === 'b') return gray('Not a personality disorder: personality change due to a medical condition', 'A new, persistent change after a brain injury is diagnosed as personality change due to another medical condition. Personality disorders begin by adolescence or early adulthood.');
+    if (c === 'c') return gray('Not a personality disorder', 'A pattern that began 2 months ago after a stressor is not enduring. Personality disorders are stable patterns from adolescence or early adulthood across settings. Consider an adjustment disorder.');
+    if (e === 'b') return s === 'd' ? gray('Mixed picture: discuss', 'Abandonment-driven, unstable relationships plus eccentric, magical beliefs cross clusters. He may meet criteria for more than one personality disorder.') : ok('C', 'Odd beliefs and magical thinking, eccentric dress and odd speech, with discomfort around people. That is schizotypal PD, the cluster A disorder closest to schizophrenia.');
+    if (s === 'a') return ok('A', 'Pervasive distrust and suspiciousness since his teens, across settings, with no odd beliefs or eccentricity.');
+    if (s === 'b') return h === 'b' ? ok('B', 'Detachment from relationships and restricted emotion: no wish for closeness and indifference to praise or criticism.') : gray('These details contradict each other', 'Indifference to other people and a wish for close friends do not fit together. Schizoid PD has no desire for relationships.');
+    if (s === 'c') return h === 'a' ? ok('D', 'He wants relationships but avoids them for fear of criticism and rejection. That is avoidant PD; someone with schizoid PD would not care.') : gray('These details contradict each other', 'Avoidant PD wants relationships but fears rejection. Someone with no interest in relationships is not driven by fear of rejection.');
+    return h === 'a' ? ok('E', 'Unstable relationships that swing between idealizing and devaluing, and frantic efforts to avoid abandonment.') : gray('These details contradict each other', 'Frantic efforts to avoid being left do not fit having no interest in close relationships.');
+  }
+});
+
+/* ---------- Antidepressant choice ---------- */
+MODULES.push({
+  id: 'antidepressants', tab: 'Antidepressants', group: 'Pharmacology',
+  stem: ['A 46-year-old woman has had 6 weeks of depressed mood, anhedonia, poor concentration and guilt, and meets criteria for major depressive disorder. She also has ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate antidepressant?'],
+  slots: [
+    { id: 1, name: 'Comorbidity', opts: { a: 'no other symptoms', b: 'burning pain and numbness in both feet from diabetic neuropathy', c: 'a pack-a-day smoking habit that she wants to quit', d: 'severe insomnia and has lost 7 kg (15 lb) without trying' } },
+    { id: 2, name: 'Past treatment', opts: { a: 'This is her first antidepressant', b: 'She stopped sertraline last year because of sexual side effects', c: 'Adequate trials of sertraline and then bupropion have both failed to help' } },
+    { id: 3, name: 'Medical history', opts: { a: 'Her blood pressure, weight and other labs are unremarkable', b: 'She has epilepsy, well controlled on levetiracetam', c: 'Her BMI is 36, and her HbA1c has risen to 8.4%' } }
+  ],
+  answers: [['A', 'Sertraline (SSRI)'], ['B', 'Duloxetine (SNRI)'], ['C', 'Venlafaxine (SNRI)'], ['D', 'Bupropion (NDRI)'], ['E', 'Mirtazapine (alpha-2 antagonist)'], ['F', 'Trazodone (5-HT2 antagonist)'], ['G', 'Amitriptyline (tricyclic)'], ['H', 'Esketamine nasal spray (NMDA antagonist)']],
+  presets: [['a','a','a'], ['b','a','a'], ['c','a','a'], ['d','a','a'], ['a','b','a'], ['a','c','a']],
+  ruler: null,
+  footer: 'Key points: SSRIs are first line. Duloxetine adds neuropathic pain. Bupropion avoids sexual side effects and weight gain and helps smoking cessation, but lowers the seizure threshold. Mirtazapine sedates and increases appetite. Esketamine is added for treatment-resistant depression. Tricyclics are lethal in overdose.',
+  needs: {
+    A: { 1: 'Sertraline is the pick when nothing else steers the choice (1a), or when bupropion would fit but epilepsy rules it out (1c with 3b).', 2: 'Sertraline is out once it has caused sexual side effects or already failed (2a would allow it).', 3: 'For a smoker, bupropion is the better choice unless epilepsy rules it out (3b).' },
+    B: { 1: 'Duloxetine earns its place through its second indication, diabetic neuropathic pain (1b).', 2: 'Duloxetine causes the same kind of sexual side effects she had on sertraline (2a or 2c would remove that problem).' },
+    D: { 1: 'Bupropion is chosen for smoking cessation (1c), or to avoid sexual side effects (2b) when nothing else steers the choice.', 2: 'Without smoking to target, bupropion’s edge is avoiding sexual side effects (2b). It has also already failed in 2c.', 3: 'Bupropion lowers the seizure threshold, so epilepsy rules it out (3a or 3c would allow it).' },
+    E: { 1: 'Mirtazapine is chosen when sedation and appetite are wanted (1d), or as the fallback when SSRIs and bupropion are both out.', 2: 'Without a reason to avoid SSRIs (2b), sertraline comes first.', 3: 'Mirtazapine causes weight gain and can worsen glucose, a poor fit with a high BMI and rising HbA1c. As a fallback it is needed only when epilepsy rules out bupropion (3b).' },
+    H: { 1: 'An untried drug that also treats her other problem comes before esketamine (1a or 1c).', 2: 'Esketamine is for treatment-resistant depression, after at least two adequate antidepressant trials have failed (2c).', 3: 'With insomnia and weight loss, untried mirtazapine comes first unless her weight and glucose argue against it (3c).' }
+  },
+  never: {
+    C: 'Venlafaxine works, but it adds a dose-related rise in blood pressure, harsher discontinuation symptoms and sexual side effects. Duloxetine is the SNRI with the neuropathic-pain indication, so venlafaxine is not the best answer in any version of this case.',
+    F: 'At antidepressant doses trazodone is very sedating and can cause orthostasis and priapism; at low doses it is mainly a sleep aid. For insomnia with weight loss, mirtazapine treats the depression and helps both sleep and appetite.',
+    G: 'Amitriptyline treats depression and neuropathic pain, but it is anticholinergic and sedating, causes weight gain and orthostasis, and is lethal in overdose. A newer agent is the safer first choice in every version of this case.'
+  },
+  diagnose: function (c, s, h) {
+    var mirt = 'Mirtazapine blocks alpha-2 receptors (and 5-HT2, 5-HT3 and H1 receptors). ';
+    var bup = 'Bupropion inhibits norepinephrine and dopamine reuptake. ';
+    var esk = 'Two adequate trials have failed, so this is treatment-resistant depression. Esketamine, an NMDA receptor antagonist given as a supervised nasal spray with an oral antidepressant, works within days. Augmentation and ECT are the other main options.';
+    if (s === 'c') {
+      if (c === 'b') return ok('B', 'Duloxetine has not been tried, and as a serotonin-norepinephrine reuptake inhibitor it treats both the depression and her neuropathic pain. Esketamine would come next if it fails.');
+      if (c === 'd' && h !== 'c') return ok('E', 'Mirtazapine has not been tried and fits her insomnia and weight loss. ' + mirt + 'Esketamine would come next if it fails.');
+      return ok('H', esk);
+    }
+    if (c === 'b') {
+      if (s === 'b') return gray('Tradeoff: discuss', 'Duloxetine treats both problems but causes sexual side effects like sertraline did. Options include duloxetine with close follow-up, or bupropion for mood plus a separate drug for neuropathic pain, such as pregabalin or gabapentin.');
+      return ok('B', 'Duloxetine, a serotonin-norepinephrine reuptake inhibitor, treats both depression and diabetic neuropathic pain.' + (h === 'c' ? ' It is weight-neutral, so her BMI and HbA1c are no barrier.' : ''));
+    }
+    if (c === 'd') {
+      if (h === 'c') return gray('Tradeoff: discuss', 'Mirtazapine fits her insomnia and poor appetite but causes weight gain and can worsen glycemic control. An unexplained 7-kg loss with a high BMI and rising HbA1c also needs a medical workup before choosing.');
+      return ok('E', mirt + 'It is sedating and increases appetite, so its side effects become benefits for insomnia and weight loss.' + (s === 'b' ? ' It also causes little sexual dysfunction.' : ''));
+    }
+    if (c === 'c') {
+      if (h !== 'b') return ok('D', bup + 'It treats depression and helps with smoking cessation.' + (s === 'b' ? ' It also avoids the sexual side effects she had on sertraline.' : '') + (h === 'c' ? ' It does not cause weight gain.' : ''));
+      if (s === 'b') return ok('E', 'Epilepsy rules out bupropion, and sexual side effects rule out going back to an SSRI. ' + mirt + 'It causes little sexual dysfunction. Treat smoking separately with varenicline or nicotine replacement.');
+      return ok('A', 'Bupropion would treat both depression and smoking, but it lowers the seizure threshold, so epilepsy rules it out. Use an SSRI such as sertraline (serotonin reuptake inhibition), and treat smoking separately with varenicline or nicotine replacement.');
+    }
+    if (s === 'a') return ok('A', 'With nothing else to target, an SSRI such as sertraline is first line: it inhibits serotonin reuptake, is well tolerated and is safe in overdose.');
+    if (h === 'b') return ok('E', 'Sexual side effects rule out going back to an SSRI, and epilepsy rules out bupropion. ' + mirt + 'It causes little sexual dysfunction.');
+    return ok('D', bup + 'It has the lowest rate of sexual side effects of the common antidepressants and does not cause weight gain.' + (h === 'c' ? ' That also suits her BMI and HbA1c.' : ''));
+  }
+});
+
+/* ---------- Mood stabilizers ---------- */
+MODULES.push({
+  id: 'mood-stabilizers', tab: 'Mood stabilizers', group: 'Pharmacology',
+  stem: ['A 29-year-old woman with bipolar I disorder sees her psychiatrist. She is ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate medication?'],
+  slots: [
+    { id: 1, name: 'Phase', opts: { a: 'in an acute manic episode and has just been admitted', b: 'in a depressive episode, with low mood and hypersomnia for 3 weeks', c: 'well now, but most of her past episodes have been depressive, and she needs maintenance treatment' } },
+    { id: 2, name: 'Kidneys', opts: { a: 'Her kidney and thyroid function are normal', b: 'She has chronic kidney disease with an eGFR of 38 mL/min' } },
+    { id: 3, name: 'Pregnancy', opts: { a: 'She has a copper IUD and does not plan to become pregnant', b: 'She hopes to become pregnant within the year' } }
+  ],
+  answers: [['A', 'Lithium'], ['B', 'Valproate'], ['C', 'Lamotrigine'], ['D', 'Quetiapine'], ['E', 'Carbamazepine'], ['F', 'Sertraline alone']],
+  presets: [['a','a','a'], ['a','b','a'], ['a','a','b'], ['b','a','a'], ['c','a','a'], ['c','b','b']],
+  ruler: null,
+  footer: 'Key points: lithium is first line for mania and reduces suicide but is renally cleared and nephrotoxic. Valproate is strongly teratogenic. Quetiapine treats both acute mania and bipolar depression. Lamotrigine prevents depressive relapse but needs slow titration. Antidepressants alone can trigger mania.',
+  needs: {
+    A: { 1: 'In this case lithium is the pick for acute mania (1a); bipolar depression and depression-predominant maintenance point elsewhere.', 2: 'Lithium is renally cleared and nephrotoxic, so chronic kidney disease rules it out (2a would allow it).', 3: 'Planning a pregnancy shifts acute mania treatment toward an antipsychotic such as quetiapine (3a would allow lithium).' },
+    B: { 1: 'Valproate is a pick for acute mania (1a), not for bipolar depression or depression-predominant maintenance.', 2: 'Valproate earns its place here only when kidney disease rules out lithium (2b).', 3: 'Valproate is strongly teratogenic (neural tube defects, lower IQ), so pregnancy plans rule it out (3a would allow it).' },
+    C: { 1: 'Lamotrigine prevents depressive relapse but needs weeks of slow titration and does little for mania, so it fits maintenance (1c).' },
+    D: { 1: 'Quetiapine is the pick for acute bipolar depression (1b), or for acute mania when lithium and valproate are out.', 3: 'For acute mania, quetiapine is the pick when pregnancy plans rule out valproate and favor an antipsychotic (3b).' }
+  },
+  never: {
+    E: 'Carbamazepine treats mania, but it induces liver enzymes (many interactions, including with contraception), can cause agranulocytosis, hyponatremia and Stevens-Johnson syndrome, and is teratogenic. It is second line in every version of this case.',
+    F: 'An antidepressant alone in bipolar disorder can trigger mania or rapid cycling. If one is used at all, it is added to a mood stabilizer.'
+  },
+  diagnose: function (c, s, h) {
+    if (c === 'b') return ok('D', 'Quetiapine, an antagonist at D2 and 5-HT2A receptors, is approved for bipolar depression and works within weeks. Lamotrigine is too slow to titrate for an acute episode, and an antidepressant alone risks a switch to mania.' + (h === 'b' ? ' It is also a reasonable choice when pregnancy is planned.' : ''));
+    if (c === 'c') return ok('C', 'Lamotrigine, a sodium channel blocker, prevents depressive relapse, is weight-neutral and has a lower teratogenic risk than valproate or carbamazepine. Titrate slowly to avoid Stevens-Johnson syndrome.' + (s === 'b' ? ' It is not renally cleared like lithium.' : ''));
+    if (h === 'b') return ok('D', 'Valproate is strongly teratogenic, and lithium needs careful planning in pregnancy, so an antipsychotic such as quetiapine is the usual choice for acute mania when pregnancy is planned.');
+    if (s === 'b') return ok('B', 'Lithium is renally cleared and nephrotoxic, so chronic kidney disease rules it out. Valproate treats acute mania and is cleared by the liver.');
+    return ok('A', 'Lithium is first line for acute mania and maintenance in bipolar I, and it is the mood stabilizer shown to reduce suicide. Check levels, TSH and creatinine.');
+  }
+});
+
+/* ---------- Anxiety medications ---------- */
+MODULES.push({
+  id: 'anxiety-drugs', tab: 'Anxiety drugs', group: 'Pharmacology',
+  stem: ['A 33-year-old woman sees her primary care physician about ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate medication?'],
+  slots: [
+    { id: 1, name: 'Disorder', opts: { a: 'generalized anxiety disorder, with 8 months of constant, hard-to-control worry', b: 'panic disorder, with recurrent unexpected attacks and constant fear of the next one', c: 'fear of public speaking only, with a tremor and racing heart before the presentation she gives each month', d: 'posttraumatic stress disorder after an assault, with flashbacks and nightly nightmares' } },
+    { id: 2, name: 'Past treatment', opts: { a: 'She has never taken medication for it', b: 'She has taken sertraline at a full dose for 3 months with only partial improvement' } },
+    { id: 3, name: 'History', opts: { a: 'She is otherwise healthy', b: 'She has moderate persistent asthma', c: 'She has alcohol use disorder in early remission' } }
+  ],
+  answers: [['A', 'Sertraline (SSRI)'], ['B', 'Buspirone'], ['C', 'Venlafaxine (SNRI)'], ['D', 'Propranolol'], ['E', 'Prazosin'], ['F', 'Lorazepam'], ['G', 'Hydroxyzine']],
+  presets: [['a','a','a'], ['a','b','a'], ['b','b','a'], ['c','a','a'], ['c','a','b'], ['d','b','a']],
+  ruler: null,
+  footer: 'Key points: SSRIs and SNRIs are first line for GAD, panic disorder and PTSD and take weeks to work. Buspirone augments a partial response in GAD. Propranolol is taken as needed for performance anxiety. Prazosin targets trauma nightmares. Benzodiazepines are short-term only and are avoided in PTSD and substance use disorders.',
+  needs: {
+    A: { 1: 'Sertraline is first line for GAD, panic disorder and PTSD, but performance-only anxiety is treated as needed (1a, 1b or 1d).', 2: 'She has already had 3 months of full-dose sertraline (2a would make it the first step).' },
+    B: { 1: 'Buspirone is an add-on for generalized anxiety disorder (1a); it does not help panic, performance anxiety or PTSD.', 2: 'Buspirone is added after a partial response to an SSRI (2b), not started first.' },
+    C: { 1: 'Switching to venlafaxine is the step here for panic disorder that responded only partly to sertraline (1b).', 2: 'Venlafaxine is the next step after a partial response (2b); sertraline comes first.' },
+    D: { 1: 'Propranolol is for predictable performance anxiety (1c), where it blunts tremor and palpitations.', 3: 'Propranolol is a non-selective beta-blocker and can trigger bronchospasm, so asthma rules it out (3a or 3c would allow it).' },
+    E: { 1: 'Prazosin is for trauma-related nightmares (1d).', 2: 'Prazosin is added for nightmares that persist after first-line treatment (2b).' },
+    F: { 1: 'A one-time low dose of lorazepam is only for performance anxiety (1c) when propranolol cannot be used.', 3: 'Lorazepam is the fallback only when asthma rules out propranolol (3b). With alcohol use disorder, benzodiazepines are avoided.' }
+  },
+  never: { G: 'Hydroxyzine, an H1 antagonist, is a non-habit-forming as-needed option, but it is sedating and anticholinergic and is not a first-line treatment for any of these disorders.' },
+  diagnose: function (c, s, h) {
+    if (c === 'c') {
+      if (h === 'b') return ok('F', 'Propranolol, a non-selective beta-blocker, can trigger bronchospasm in asthma. For a predictable, occasional performance, a single low dose of a benzodiazepine such as lorazepam before the talk is a reasonable alternative.');
+      return ok('D', 'For predictable performance anxiety, propranolol taken about an hour before blocks beta-adrenergic receptors and blunts the tremor, palpitations and sweating. An as-needed drug suits a monthly event better than a daily SSRI.' + (h === 'c' ? ' It also avoids a benzodiazepine in someone with alcohol use disorder.' : ''));
+    }
+    if (s === 'a') return ok('A', 'An SSRI such as sertraline, a serotonin reuptake inhibitor, is first line for generalized anxiety, panic disorder and PTSD. It takes 4 to 6 weeks to work.' + (h === 'c' ? ' Benzodiazepines would be a poor choice with alcohol use disorder.' : ''));
+    if (c === 'a') return ok('B', 'For a partial response in GAD, adding buspirone, a 5-HT1A partial agonist, is a standard augmentation. It is not sedating or habit-forming but takes weeks to work.');
+    if (c === 'b') return ok('C', 'For panic disorder with a partial response to an SSRI, switching to an SNRI such as venlafaxine (serotonin and norepinephrine reuptake inhibition) is a standard next step, along with CBT. Buspirone does not help panic.');
+    return ok('E', 'For trauma nightmares that persist on an SSRI, prazosin, an alpha-1 adrenergic antagonist taken at bedtime, reduces nightmares. Benzodiazepines are avoided in PTSD.');
+  }
+});
+
+/* ---------- Antipsychotics ---------- */
+MODULES.push({
+  id: 'antipsychotics', tab: 'Antipsychotics', group: 'Pharmacology',
+  stem: ['A 24-year-old man with schizophrenia sees his psychiatrist. ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate antipsychotic?'],
+  slots: [
+    { id: 1, name: 'Treatment history', opts: { a: 'This is his first episode, and he has never taken an antipsychotic', b: 'Adequate trials of risperidone and then olanzapine did not control his voices', c: 'He improves on oral medication but keeps stopping it and has been readmitted three times this year' } },
+    { id: 2, name: 'Metabolic', opts: { a: 'His BMI is 23, and his glucose and lipids are normal', b: 'His BMI is 35, and he has prediabetes' } },
+    { id: 3, name: 'Other', opts: { a: 'He has no other medical concerns', b: 'His ECG shows a QTc of 520 ms', c: 'He developed breast enlargement and low libido on risperidone in the past' } }
+  ],
+  answers: [['A', 'Risperidone'], ['B', 'Olanzapine'], ['C', 'Aripiprazole'], ['D', 'Clozapine'], ['E', 'Paliperidone palmitate (monthly injection)'], ['F', 'Haloperidol'], ['G', 'Ziprasidone']],
+  presets: [['a','b','a'], ['a','a','b'], ['b','a','a'], ['c','a','a'], ['c','a','c'], ['b','b','a']],
+  ruler: null,
+  footer: 'Key points: clozapine is the drug for treatment-resistant schizophrenia and needs neutrophil monitoring. Long-acting injectables help with nonadherence. Olanzapine and clozapine cause the most weight gain; aripiprazole and lurasidone the least. Risperidone and paliperidone raise prolactin. Ziprasidone prolongs QT.',
+  needs: {
+    C: { 1: 'For a first episode with metabolic, QT or prolactin concerns, or nonadherence with those concerns, aripiprazole is the fit (1a or 1c). After two failed trials, clozapine comes first.', 2: 'Without a metabolic, QT or prolactin concern, there is no clear reason to prefer aripiprazole (2b would give one).', 3: 'Without a metabolic, QT or prolactin concern, there is no clear reason to prefer aripiprazole (3b or 3c would give one).' },
+    D: { 1: 'Clozapine is for treatment-resistant schizophrenia, after two adequate antipsychotic trials have failed (1b).' },
+    E: { 1: 'A long-acting injectable is chosen for repeated nonadherence and relapse (1c).', 2: 'Paliperidone carries moderate metabolic risk; with obesity and prediabetes, aripiprazole’s monthly injection fits better (2a would allow it).', 3: 'Paliperidone is risperidone’s active metabolite, so it shares the prolactin problem, and QT prolongation argues for aripiprazole instead (3a would allow it).' }
+  },
+  never: {
+    A: 'Risperidone is a reasonable first-line drug for a first episode with no special concerns, but it raises prolactin and causes dose-related EPS. In every version of this case with a clean answer, another drug fits better.',
+    B: 'Olanzapine is effective, but after clozapine it causes the most weight gain, diabetes and dyslipidemia. It is not the best answer in any version of this case.',
+    F: 'Haloperidol, a high-potency first-generation drug, carries a high risk of acute dystonia, parkinsonism and tardive dyskinesia. It is used mainly for acute agitation or as a long-acting injectable, not as first choice here.',
+    G: 'Ziprasidone has low metabolic risk but prolongs QT more than the others listed and must be taken with food. Aripiprazole is the safer metabolically neutral choice in every version of this case.'
+  },
+  diagnose: function (c, s, h) {
+    if (c === 'a' && h === 'c') return gray('These details contradict each other', 'A first episode with no past antipsychotic cannot include a past reaction to risperidone. Pick a different treatment history or concern.');
+    if (c === 'b') return ok('D', 'Two adequate trials have failed, so this is treatment-resistant schizophrenia. Clozapine is the only antipsychotic with proven benefit here and also lowers suicide risk. It requires regular neutrophil monitoring for agranulocytosis.' + (s === 'b' ? ' Its weight and glucose effects need close metabolic monitoring.' : '') + (h === 'b' ? ' Correct electrolytes and get cardiology input given his QTc.' : ''));
+    var arip = 'Aripiprazole, a D2 partial agonist, has little effect on weight, glucose, QT or prolactin.';
+    if (c === 'c') {
+      if (s === 'a' && h === 'a') return ok('E', 'Repeated relapse from stopping oral medication is the main indication for a long-acting injectable. Paliperidone palmitate, given monthly, keeps a steady level without daily pills.');
+      return ok('C', 'Repeated nonadherence calls for a long-acting injectable, and ' + (h === 'c' ? 'paliperidone shares risperidone’s prolactin effect' : h === 'b' ? 'his QTc argues against most options' : 'his obesity and prediabetes argue against paliperidone') + '. ' + arip + ' It is available as a monthly injection.');
+    }
+    if (s === 'a' && h === 'a') return gray('More than one good answer', 'For a first episode with no special concerns, any second-generation antipsychotic except clozapine is reasonable, including risperidone and aripiprazole. Choose by side-effect profile and patient preference, and start low.');
+    return ok('C', arip + (s === 'b' ? ' That makes it a good fit for obesity and prediabetes.' : '') + (h === 'b' ? ' Avoid ziprasidone and IV haloperidol with a long QTc.' : ''));
+  }
+});
+
+/* ---------- Substance use medications ---------- */
+MODULES.push({
+  id: 'substance-drugs', tab: 'Substance use drugs', group: 'Pharmacology',
+  stem: ['A 41-year-old woman sees her primary care physician and asks for medication to support her recovery from ', 1, '. ', 2, '. ', 3, '. Which of the following is the most appropriate medication?'],
+  slots: [
+    { id: 1, name: 'Disorder', opts: { a: 'alcohol use disorder; she completed detox 5 days ago and has not drunk since', b: 'opioid use disorder; she has injected heroin daily for 2 years' } },
+    { id: 2, name: 'Organ function', opts: { a: 'Her liver and kidney tests are normal', b: 'She has cirrhosis with jaundice', c: 'Her eGFR is 25 mL/min' } },
+    { id: 3, name: 'Situation', opts: { a: 'She takes no other medications', b: 'She takes prescribed oxycodone daily for chronic back pain', c: 'She is 18 weeks pregnant' } }
+  ],
+  answers: [['A', 'Naltrexone'], ['B', 'Acamprosate'], ['C', 'Disulfiram'], ['D', 'Buprenorphine'], ['E', 'Methadone'], ['F', 'Naloxone']],
+  presets: [['a','a','a'], ['a','b','a'], ['a','a','b'], ['a','c','b'], ['b','a','a'], ['b','a','c']],
+  ruler: null,
+  footer: 'Key points: naltrexone (mu antagonist) is first line for alcohol use disorder but cannot be used with opioids or liver failure. Acamprosate (glutamate modulator) is safe in liver disease but renally cleared. Disulfiram is a deterrent that needs a motivated patient. Buprenorphine and methadone treat opioid use disorder, including in pregnancy. Naloxone reverses overdose.',
+  needs: {
+    A: { 1: 'Here naltrexone is the pick for alcohol use disorder (1a); for someone injecting heroin daily it would precipitate withdrawal.', 2: 'Naltrexone is avoided in decompensated liver disease (2a or 2c would allow it).', 3: 'Naltrexone blocks opioid receptors, so it would cause withdrawal and block pain relief in someone taking oxycodone (3a would allow it).' },
+    B: { 1: 'Acamprosate is for alcohol use disorder (1a), not opioid use disorder.', 2: 'Acamprosate is renally cleared and contraindicated with an eGFR of 30 or less (2a or 2b would allow it).', 3: 'Acamprosate is the pick when naltrexone is out because of opioids (3b) or liver disease (2b).' },
+    C: { 1: 'Disulfiram is for alcohol use disorder (1a).', 2: 'Disulfiram is the remaining option only when kidney disease rules out acamprosate (2c) and opioids rule out naltrexone.', 3: 'Disulfiram is the remaining option only when opioids rule out naltrexone (3b) and kidney disease rules out acamprosate.' },
+    D: { 1: 'Buprenorphine treats opioid use disorder (1b), not alcohol use disorder.' }
+  },
+  never: {
+    E: 'Methadone is equally effective and also recommended in pregnancy, but it must be dispensed daily through an opioid treatment program and prolongs QT. For a patient in primary care, buprenorphine is the more practical first choice in every version of this case.',
+    F: 'Naloxone reverses an overdose; it is not a maintenance or relapse-prevention treatment. Prescribe it alongside, not instead.'
+  },
+  diagnose: function (c, s, h) {
+    if (c === 'b') return ok('D', 'Buprenorphine, a high-affinity mu opioid partial agonist, can be prescribed in primary care and has a ceiling on respiratory depression. Start it once she is in mild withdrawal to avoid precipitating withdrawal.' + (h === 'c' ? ' It is a first-line choice in pregnancy (methadone is the other), and stopping opioids abruptly in pregnancy is dangerous.' : '') + (s === 'b' ? ' Use it cautiously, with monitoring, given her liver disease.' : ''));
+    if (h === 'c') return gray('No clear first choice in pregnancy', 'Medication data for alcohol use disorder in pregnancy are limited, and disulfiram is avoided. Psychosocial treatment comes first; any medication is an individual risk-benefit decision.');
+    var acamp = 'Acamprosate modulates glutamate (NMDA) signaling to reduce cravings. It is renally cleared and safe in liver disease.';
+    if (s === 'b') return ok('B', 'Naltrexone is avoided in decompensated cirrhosis' + (h === 'b' ? ' and cannot be used with daily oxycodone' : '') + ', and disulfiram is hepatotoxic. ' + acamp);
+    if (h === 'b') {
+      if (s === 'c') return ok('C', 'Daily oxycodone rules out naltrexone, and an eGFR of 25 rules out acamprosate. Disulfiram, which inhibits aldehyde dehydrogenase so that drinking causes flushing, nausea and palpitations, is the remaining option, best with supervised dosing in a motivated patient.');
+      return ok('B', 'Naltrexone blocks opioid receptors, so it would precipitate withdrawal and block pain relief with daily oxycodone. ' + acamp);
+    }
+    return ok('A', 'Naltrexone, a mu opioid receptor antagonist, blunts the reward from drinking and reduces heavy drinking. It is first line when she is not taking opioids and her liver is working.' + (s === 'c' ? ' Unlike acamprosate, it does not depend on the kidneys.' : ''));
+  }
+});
+
+/* ---------- Psychotherapy: name the therapy from what happens in sessions ---------- */
+MODULES.push({
+  group: 'Psychotherapy', id: 'therapy-name', tab: 'Name the therapy',
+  stem: ['A 41-year-old electrician tells his primary care physician about the therapy he started for ', 1, '. In sessions, ', 2, '. ', 3, '. Which type of psychotherapy is he most likely receiving?'],
+  slots: [
+    { id: 1, name: 'Problem', opts: {
+      a: 'several months of low mood and loss of interest',
+      b: 'repeated self-cutting, intense anger and stormy relationships since his teens',
+      c: 'drinking most nights, which his wife keeps asking him to cut back',
+      d: 'the fear and turmoil that followed a new diagnosis of lymphoma' } },
+    { id: 2, name: 'Sessions', opts: {
+      a: 'he writes down the thoughts that come just before he feels worse, names the distortion (such as catastrophizing), and weighs the evidence for and against each one',
+      b: 'he and the therapist choose activities he used to enjoy, schedule them for the coming week, and he rates his mood after each one',
+      c: 'the therapist mostly listens, names what he is feeling, tells him most people would feel the same, and points out how well he has been coping',
+      d: 'he is encouraged to say whatever comes to mind, including dreams, and the therapist wonders aloud why he expects her to be disappointed in him, as he once expected of his father',
+      e: 'the therapist asks what he gets out of drinking and what worries him about it, reflects both sides back, and leaves the decision to him',
+      f: 'he practices skills in mindfulness, distress tolerance, emotion regulation and interpersonal effectiveness, and can call his therapist for coaching between sessions',
+      g: 'the focus is on his arguments with his wife and how his life changed when he became his mother’s caregiver' } },
+    { id: 3, name: 'Format', opts: {
+      a: 'The sessions are weekly, follow a manual with homework, and are planned to end after about 12 sessions',
+      b: 'He goes once or twice a week, with no set end, and expects to continue for a year or more',
+      c: 'He has a weekly individual session and a weekly skills group, planned for about a year',
+      d: 'These conversations happen in short check-ins during his regular medical visits' } }
+  ],
+  answers: [['A', 'Cognitive behavioral therapy (cognitive restructuring)'], ['B', 'Behavioral activation'], ['C', 'Supportive psychotherapy'], ['D', 'Psychodynamic psychotherapy'], ['E', 'Motivational interviewing'], ['F', 'Dialectical behavior therapy'], ['G', 'Interpersonal therapy']],
+  presets: [['a','a','a'], ['a','b','a'], ['d','c','d'], ['b','d','b'], ['c','e','d'], ['b','f','c']],
+  ruler: null,
+  footer: 'Sources: E25 Psychotherapy slides and course pack, and the Psychiatry Exam Review deck. Most therapists are eclectic, so real therapy often mixes approaches; each case here has one main approach, and mixed details show as gray zones. Defense mechanisms are high-yield for boards, but the course pack says they are not on this course’s final exam.',
+  needs: {
+    A: { 2: 'CBT is named by its technique here: catching automatic thoughts, labeling the distortion and weighing the evidence (2a).', 3: 'CBT is structured and time-limited: weekly, manual-guided, with homework (3a).' },
+    B: { 2: 'Behavioral activation schedules rewarding activities and tracks how mood follows (2b).', 3: 'Behavioral activation is part of CBT: structured weekly sessions with homework (3a).' },
+    C: { 2: 'Supportive therapy listens, names and normalizes feelings, and builds on the coping he already has (2c).', 3: 'Supportive work fits naturally into regular medical visits (3d). A manual, a skills group or years of open-ended sessions point elsewhere.' },
+    D: { 2: 'Psychodynamic therapy invites free association and dreams, and explores his feelings toward the therapist (2d).', 3: 'Psychodynamic therapy is once a week or more and open-ended, lasting months to years (3b).' },
+    E: { 1: 'Motivational interviewing needs a behavior he is weighing whether to change, here his drinking (1c).', 2: 'MI explores both sides of his ambivalence and leaves the decision to him (2e).', 3: 'MI is usually brief and woven into primary care visits (3d).' },
+    F: { 1: 'DBT targets self-harm and emotion dysregulation (1b), and is also used for depression and substance use (1a, 1c). Fear after a new diagnosis calls for supportive therapy.', 2: 'DBT teaches skills in mindfulness, distress tolerance, emotion regulation and interpersonal effectiveness (2f).', 3: 'DBT combines individual therapy with a skills group for about a year (3c).' },
+    G: { 1: 'Interpersonal therapy treats depression, grief and role transitions (1a or 1d).', 2: 'IPT focuses on current relationships, conflicts and role changes (2g).', 3: 'In this case IPT fits weekly structured sessions (3a).' }
+  },
+  never: {},
+  diagnose: function (p, s, f) {
+    var L = { a: 'A', b: 'B', c: 'C', d: 'D', e: 'E', f: 'F', g: 'G' }[s];
+    var NAME = { a: 'CBT (cognitive restructuring)', b: 'behavioral activation', c: 'supportive psychotherapy', d: 'psychodynamic therapy', e: 'motivational interviewing', f: 'DBT', g: 'interpersonal therapy' };
+    var FMT = { a: 'a manual, homework and a planned end after about 12 sessions', b: 'open-ended sessions once or twice a week for a year or more', c: 'individual sessions plus a skills group for a year', d: 'short check-ins during medical visits' };
+    var FMTOF = { a: 'CBT', b: 'psychodynamic therapy', c: 'DBT', d: 'supportive therapy or motivational interviewing' };
+    var WANT = { a: 'a', b: 'a', c: 'd', d: 'b', e: 'd', f: 'c', g: 'a' };
+    if (s === 'e' && p !== 'c') return gray('These details do not match', 'The sessions explore his drinking, but he came to therapy for something else. Motivational interviewing needs a behavior he is weighing whether to change, such as drinking (1c).');
+    if (s === 'f' && p === 'd') return gray('DBT skills without a DBT target', 'These are DBT skills, but DBT was developed for borderline personality disorder and self-harm. Fear and turmoil after a new cancer diagnosis is the classic setting for supportive psychotherapy.');
+    if (s === 'g' && (p === 'b' || p === 'c')) return gray('Interpersonal therapy is a depression treatment', 'The relationship focus points to interpersonal therapy, which treats depression and grief. For self-harm with stormy relationships DBT comes first; for drinking he is unsure about, motivational interviewing.');
+    if (f !== WANT[s]) return gray('Mixed signals: ask what the therapy is built on', 'What happens in session points to ' + NAME[s] + ', but ' + FMT[f] + ' is the format of ' + FMTOF[f] + '. Most therapists are eclectic, so one detail is not enough; to name the therapy, the content and the format have to agree.');
+    var note = '';
+    if (L === 'A') { note = p === 'b' ? ' For self-harm with stormy relationships, DBT is the first choice.' : p === 'd' ? ' For fear after a new diagnosis, supportive therapy is the usual first step.' : p === 'c' ? ' CBT is also used for substance use disorders.' : ''; return ok('A', 'Catching automatic thoughts, labeling the cognitive distortion and testing it against the evidence is cognitive restructuring, the core of CBT. CBT is structured and time-limited, with homework between sessions.' + note); }
+    if (L === 'B') return ok('B', 'Scheduling activities he used to enjoy and tracking the mood that follows is behavioral activation, a behavioral part of CBT. Meeting each goal improves mood, which makes the activity more likely to happen again (positive reinforcement).' + (p !== 'a' ? ' It is mainly a depression treatment.' : ''));
+    if (L === 'C') return ok('C', 'Listening, naming and normalizing his feelings, and pointing out how well he copes, are supportive interventions. Supportive therapy deals with here-and-now problems and is part of most routine medical visits.' + (p === 'd' ? ' A frightening new diagnosis is a classic reason for it.' : p === 'b' ? ' It is used for personality disorders, but DBT comes first when there is self-harm.' : ''));
+    if (L === 'D') return ok('D', 'Free association, dreams, and linking what he expects from the therapist to his father (transference) are the tools of psychodynamic therapy, which looks for unconscious patterns rooted in early relationships. It meets weekly or more for months to years.' + (p === 'b' ? ' For borderline personality disorder, psychodynamic approaches, including transference-focused and mentalization-based treatment, are options alongside DBT.' : ''));
+    if (L === 'E') return ok('E', 'Asking what he gets out of drinking and what worries him, and reflecting both sides without telling him what to do, is motivational interviewing. When the wish to change comes from the patient, change is much more likely to succeed.');
+    if (L === 'F') return ok('F', 'Skills in mindfulness, distress tolerance, emotion regulation and interpersonal effectiveness, with a skills group and phone coaching, is dialectical behavior therapy.' + (p === 'b' ? ' DBT was developed for borderline personality disorder and reduces self-harm, suicide attempts and hospitalizations.' : ' It was developed for borderline personality disorder but is also used for depression and substance use.'));
+    return ok('G', 'A focus on conflicts with his wife and his new role as a caregiver is interpersonal therapy, which treats depression by improving relationships.');
+  }
+});
+
+/* ---------- Psychotherapy: match the therapy to the problem ---------- */
+MODULES.push({
+  group: 'Psychotherapy', id: 'therapy-match', tab: 'Therapy for the problem',
+  stem: ['A 26-year-old graduate student and her physician agree to start with psychotherapy. For ', 1, ', ', 2, '. ', 3, '. Which of the following therapies is most appropriate?'],
+  slots: [
+    { id: 1, name: 'Duration', opts: { a: 'the past 2 weeks', b: 'the past 3 months', c: 'more than a year' } },
+    { id: 2, name: 'Problem', opts: {
+      a: 'she has had sudden surges of pounding heart and fear of dying that come out of nowhere, and she worries constantly about the next one',
+      b: 'she has been afraid of germs and washes her hands until they crack and bleed, for about 2 hours a day',
+      c: 'since she was assaulted in a parking garage, she has had nightmares and flashbacks, avoids parking garages and startles at small noises',
+      d: 'she has been so afraid of needles that she skips blood draws and vaccines, and nearly faints at the sight of one',
+      e: 'she has picked at the skin on her arms, leaving open sores, despite many attempts to stop',
+      f: 'she has cut herself after arguments, swung between idealizing and hating the people close to her, and felt chronically empty' } },
+    { id: 3, name: 'Approach', opts: {
+      a: 'She would like to start with what frightens her least and work up step by step, using relaxation skills',
+      b: 'She would like to face the worst of it all at once and get it over with',
+      c: 'She would like to focus on questioning the thoughts and beliefs behind her distress',
+      d: 'She has no preference about how therapy is done' } }
+  ],
+  answers: [['A', 'Cognitive behavioral therapy'], ['B', 'Exposure and response prevention'], ['C', 'Prolonged exposure'], ['D', 'Cognitive processing therapy'], ['E', 'Systematic desensitization'], ['F', 'Flooding'], ['G', 'Habit reversal training'], ['H', 'Dialectical behavior therapy']],
+  presets: [['b','a','d'], ['c','b','a'], ['b','c','a'], ['b','c','c'], ['c','d','a'], ['c','d','b'], ['b','e','d'], ['c','f','d']],
+  ruler: null,
+  footer: 'Pairings follow the E25 anxiety, personality disorder and psychotherapy slides and the exam review deck: panic disorder → CBT; OCD → ERP; PTSD → PE or CPT; specific phobia → systematic desensitization or flooding; trichotillomania and skin picking → habit reversal; borderline personality disorder → DBT. Duration thresholds follow DSM-5-TR.',
+  needs: {
+    A: { 1: 'Panic disorder needs at least 1 month of worry or behavior change after the attacks (1b or 1c).', 2: 'Of these problems, CBT itself is the first-choice therapy for panic disorder (2a); the others have more specific therapies.' },
+    B: { 2: 'ERP is the gold-standard therapy for OCD: obsessions with compulsions (2b).' },
+    C: { 1: 'PTSD needs symptoms for more than 1 month (1b or 1c); earlier, it is acute stress disorder.', 2: 'Prolonged exposure is a trauma-focused therapy for PTSD (2c).', 3: 'In PE she approaches the memories and situations she has avoided, step by step (3a). Questioning beliefs about the trauma is CPT (3c).' },
+    D: { 1: 'PTSD needs symptoms for more than 1 month (1b or 1c); earlier, it is acute stress disorder.', 2: 'Cognitive processing therapy is a trauma-focused therapy for PTSD (2c).', 3: 'CPT revisits and questions the thoughts and meanings she has drawn from the trauma (3c).' },
+    E: { 1: 'Specific phobia typically lasts 6 months or more (1c).', 2: 'Systematic desensitization is exposure therapy for specific phobia (2d).', 3: 'Systematic desensitization works up a fear hierarchy gradually, after relaxation training (3a).' },
+    F: { 1: 'Specific phobia typically lasts 6 months or more (1c).', 2: 'Flooding is exposure therapy for specific phobia (2d).', 3: 'Flooding starts at the most distressing level, all at once (3b).' },
+    G: { 2: 'Habit reversal training treats body-focused repetitive behaviors such as skin picking (2e).' },
+    H: { 1: 'A personality disorder is an enduring pattern, so it needs a long history (1c).', 2: 'DBT was developed for borderline personality disorder: self-harm, unstable relationships, chronic emptiness (2f).' }
+  },
+  never: {},
+  diagnose: function (u, p, a) {
+    var flood = ' Starting with the worst all at once is flooding, a technique taught for specific phobia.';
+    if (p === 'a') {
+      if (u === 'a') return gray('Panic attacks, not yet panic disorder', 'Panic disorder needs at least 1 month of worry about more attacks or a change in behavior because of them. Reassess; CBT is the first-choice therapy once criteria are met.');
+      return ok('A', 'Recurrent, unexpected panic attacks with constant worry about the next one is panic disorder, and CBT is its first-choice therapy. It works on the cycle of thoughts, feelings and behaviors that keeps the attacks and the avoidance going.' + (a === 'b' ? flood : ''));
+    }
+    if (p === 'b') return ok('B', 'Contamination fears with hours of hand washing is OCD, and exposure and response prevention is the gold-standard therapy, a type of CBT. She would touch something she fears is contaminated and not wash, working up a hierarchy from least to most distressing.' + (a === 'b' ? ' ERP climbs the hierarchy step by step;' + flood.replace(' Starting', ' starting') : '') + (u === 'a' ? ' OCD has no minimum duration; the time it takes (over an hour a day) and the distress define it.' : ''));
+    if (p === 'c') {
+      if (u === 'a') return gray('Too soon for PTSD', 'In the first month after a trauma, these symptoms are acute stress disorder. PTSD needs more than 1 month; trauma-focused therapy (PE or CPT) is the treatment once it is diagnosed.');
+      if (a === 'b') return gray('Flooding is for specific phobia', 'Starting with the most distressing exposure all at once is flooding, which is taught for specific phobia. For PTSD the trauma-focused therapies are prolonged exposure and cognitive processing therapy.');
+      if (a === 'd') return gray('Two first-line options', 'This is PTSD, and prolonged exposure and cognitive processing therapy are both first-line trauma-focused therapies. Her preference decides: approaching avoided memories and situations (PE) or questioning the beliefs she has formed since the trauma (CPT).');
+      if (a === 'c') return ok('D', 'Nightmares, flashbacks, avoidance and hyperarousal for more than a month after an assault is PTSD. Revisiting and questioning the thoughts and meanings she has drawn from it, by writing a detailed account and reading it with the therapist and at home, is cognitive processing therapy, a trauma-focused form of CBT.');
+      return ok('C', 'Nightmares, flashbacks, avoidance and hyperarousal for more than a month after an assault is PTSD. In prolonged exposure she approaches the memories, feelings and situations she has avoided, in a safe way, and learns that she does not need to avoid reminders of the trauma.');
+    }
+    if (p === 'd') {
+      if (u !== 'c') return gray('Too short for specific phobia', 'Specific phobia needs persistent fear and avoidance, typically for 6 months or more. Exposure therapy is the treatment once it is diagnosed.');
+      if (a === 'c' || a === 'd') return gray('Exposure is the core: choose the version', 'Specific phobia is treated with exposure therapy, not medication. Ask whether she would rather work up gradually after relaxation training (systematic desensitization) or face the most feared level at once (flooding).');
+      if (a === 'b') return ok('F', 'Long-standing fear and avoidance of needles is a specific phobia, treated with exposure therapy. Starting at the most distressing level, in real life, and staying until she feels calm is flooding: faster than systematic desensitization, but more distressing.');
+      return ok('E', 'Long-standing fear and avoidance of needles is a specific phobia, treated with exposure therapy. Relaxation skills first, then gradual exposure up a fear hierarchy from least to most distressing, is systematic desensitization.');
+    }
+    if (p === 'e') return ok('G', 'Repeated skin picking with sores and failed attempts to stop is excoriation disorder. Habit reversal training, a behavioral form of CBT, is the therapy of choice: self-monitoring, awareness training, stimulus control and a competing response.' + (a === 'b' ? flood : ''));
+    if (u !== 'c') return gray('Too short for a personality disorder', 'Borderline personality disorder is an enduring pattern that begins by early adulthood. A few weeks or months of these behaviors needs another explanation first, such as a mood episode or substance use.');
+    return ok('H', 'Self-harm, relationships that swing between idealizing and devaluing, and chronic emptiness over years suggest borderline personality disorder. DBT was developed for it and reduces self-harm, suicide attempts and hospitalizations.' + (a === 'b' ? flood : ''));
+  }
+});
+
+/* ---------- Presentation: what else to expect, and look-alikes that point elsewhere ---------- */
+var PRESENT = {
+  bipolar: {
+    A: { see: ['Grandiose delusions (special powers, a mission, great importance)', 'Decreased need for sleep without feeling tired', 'Pressured speech and flight of ideas', 'Distractibility and psychomotor agitation', 'Risky spending, sexual or business ventures', 'Irritable or expansive mood'],
+         not: [['Nihilistic or guilt-laden delusions', 'psychotic depression'], ['Hypersomnia', 'depression; mania reduces the need for sleep'], ['Prominent visual hallucinations', 'delirium or substance use'], ['Fluctuating attention and arousal', 'delirium'], ['Panic attacks', 'an anxiety disorder, not mania']] },
+    B: { see: ['Hypomania: more energy, less sleep, more talkative and productive', 'A change others notice, without marked impairment', 'A past major depressive episode, often the reason for the visit', 'No psychosis and no hospitalization'],
+         not: [['Psychotic features', 'mania, so bipolar I'], ['Marked impairment or admission', 'mania, so bipolar I'], ['Hypomania with no past depression', 'other specified bipolar disorder']] },
+    C: { see: ['2 years or more of many hypomanic and depressive symptom periods', 'Never symptom-free for more than 2 months', 'Never meets criteria for a full episode'],
+         not: [['A full major depressive, manic or hypomanic episode', 'bipolar I or II, or major depression'], ['Lifelong, stable grandiosity without mood swings', 'narcissistic personality disorder']] },
+    D: { see: ['Onset during or soon after a drug: steroids, stimulants, cocaine, antidepressants', 'Improvement as the drug is stopped', 'Symptoms that track the dose'],
+         not: [['Symptoms that began before the drug', 'a primary bipolar disorder'], ['Mania that persists well beyond the drug’s effect', 'bipolar I, even if an antidepressant triggered it']] }
+  },
+  anxiety: {
+    A: { see: ['Restlessness and psychomotor agitation', 'Fatigue', 'Poor concentration or mind going blank', 'Irritability', 'Muscle tension', 'Sleep disturbance'],
+         not: [['Psychomotor slowing', 'depression'], ['Waxy flexibility', 'catatonia'], ['Cogwheel rigidity', 'parkinsonism or a dopamine blocker'], ['Discrete attacks that peak within minutes', 'panic disorder'], ['Worry only about being judged', 'social anxiety disorder']] },
+    B: { see: ['At least 4 symptoms in an attack, peaking within minutes: palpitations, sweating, trembling, shortness of breath, chest pain, nausea, dizziness, tingling, chills or heat', 'Derealization, depersonalization, fear of losing control or dying', 'Worry about the next attack, or avoiding exercise and caffeine'],
+         not: [['Constant anxiety rather than attacks', 'generalized anxiety disorder'], ['Attacks only in a feared situation', 'a specific or social phobia'], ['Attacks that began with a stimulant or caffeine', 'substance/medication-induced anxiety']] },
+    C: { see: ['Fear in 2 or more of: public transport, open spaces, enclosed spaces, lines or crowds, being outside home alone', 'Avoidance, or going only with a companion', 'Occurs with or without panic attacks'],
+         not: [['Fear of being judged', 'social anxiety disorder'], ['Fear of one object or situation', 'specific phobia'], ['Avoiding reminders of a trauma', 'posttraumatic stress disorder']] },
+    D: { see: ['Fear of scrutiny or embarrassment', 'Blushing, tremor or sweating in social situations', 'Avoiding speaking, eating or writing in front of others', 'The “performance only” specifier when limited to speaking or performing'],
+         not: [['Avoidance because escape would be hard', 'agoraphobia'], ['No desire for relationships', 'schizoid personality disorder'], ['A lifelong sense of inadequacy across all settings', 'avoidant personality disorder (they often overlap)']] },
+    E: { see: ['Onset with stimulants, caffeine, steroids, thyroid hormone or decongestants', 'Or during alcohol or sedative withdrawal', 'Tremor, tachycardia and insomnia', 'Resolution after the drug is stopped'],
+         not: [['Symptoms that began before the drug', 'a primary anxiety disorder']] }
+  },
+  psychotic: {
+    A: { see: ['Sudden onset, often after a major stressor or after childbirth', 'Emotional turmoil and confusion', 'Full return to baseline within 1 month'],
+         not: [['Symptoms lasting 1 month or more', 'schizophreniform disorder'], ['Psychosis only during a mood episode', 'a mood disorder with psychotic features'], ['Onset with a drug', 'substance-induced psychotic disorder']] },
+    B: { see: ['The same symptoms as schizophrenia', 'Duration of 1 to 6 months', 'Decline in functioning not required', 'About a third recover fully'],
+         not: [['6 months or more of illness', 'schizophrenia']] },
+    C: { see: ['Auditory hallucinations, often voices commenting or conversing', 'Delusions, including thought broadcasting or insertion', 'Disorganized speech or behavior', 'Negative symptoms: flat affect, alogia, avolition, asociality', 'Decline in work, relationships or self-care', 'Positive symptoms tied to mesolimbic overactivity; negative and cognitive symptoms to mesocortical underactivity'],
+         not: [['Visual hallucinations with fluctuating attention', 'delirium'], ['A single delusion with intact functioning', 'delusional disorder'], ['Psychosis only during mood episodes', 'a mood disorder with psychotic features'], ['Odd beliefs without sustained psychosis', 'schizotypal personality disorder']] },
+    D: { see: ['A major mood episode alongside schizophrenia symptoms', 'Mood symptoms for most of the illness', 'At least 2 weeks of psychosis with no mood symptoms'],
+         not: [['Psychosis only during mood episodes', 'major depression or bipolar disorder with psychotic features'], ['Mood symptoms brief compared with the psychosis', 'schizophrenia']] },
+    E: { see: ['A non-bizarre delusion: persecutory, jealous, erotomanic, somatic or grandiose', 'Behavior otherwise unremarkable', 'No prominent hallucinations or disorganization'],
+         not: [['Hallucinations, disorganization or negative symptoms', 'schizophrenia spectrum'], ['Pervasive suspiciousness without a fixed delusion', 'paranoid personality disorder'], ['Magical thinking and eccentricity', 'schizotypal personality disorder']] },
+    F: { see: ['Onset with stimulants, cannabis, PCP, hallucinogens or steroids', 'Tactile hallucinations (formication) with stimulants', 'Resolution within about a month of abstinence'],
+         not: [['Psychosis lasting more than a month after stopping', 'a primary psychotic disorder'], ['Knowing the perceptions are drug effects', 'intoxication only, not a psychotic disorder']] }
+  },
+  personality: {
+    A: { see: ['Suspects others of exploiting or deceiving him', 'Reluctant to confide', 'Reads hidden insults into harmless remarks', 'Bears grudges and counterattacks quickly', 'Doubts a partner’s fidelity without reason'],
+         not: [['A fixed false belief', 'delusional disorder'], ['Hallucinations', 'schizophrenia'], ['Magical thinking and eccentricity', 'schizotypal personality disorder']] },
+    B: { see: ['No desire for close relationships, including family', 'Chooses solitary activities', 'Little interest in sex and few pleasures', 'Indifferent to praise or criticism', 'Emotional coldness and flat affect'],
+         not: [['Wanting relationships but fearing rejection', 'avoidant personality disorder'], ['Odd beliefs and eccentric behavior', 'schizotypal personality disorder'], ['Negative symptoms with psychosis', 'schizophrenia']] },
+    C: { see: ['Ideas of reference', 'Magical thinking or a “sixth sense”', 'Unusual perceptions', 'Vague, odd or metaphorical speech', 'Eccentric dress and behavior', 'Social anxiety that does not fade with familiarity'],
+         not: [['Sustained frank psychosis', 'schizophrenia'], ['Detachment without odd beliefs', 'schizoid personality disorder']] },
+    D: { see: ['Avoids jobs with much contact for fear of criticism', 'Gets involved only when sure of being liked', 'Restrained in close relationships for fear of shame', 'Sees himself as inferior or inept', 'Reluctant to take risks or try new things'],
+         not: [['Indifference to relationships', 'schizoid personality disorder'], ['Fear limited to social or performance situations', 'social anxiety disorder'], ['Needing others to make everyday decisions', 'dependent personality disorder']] },
+    E: { see: ['Frantic efforts to avoid abandonment', 'Unstable relationships that swing between idealizing and devaluing (splitting)', 'Unstable sense of self', 'Impulsivity', 'Recurrent self-harm or suicidal behavior', 'Rapid mood shifts over hours, chronic emptiness, intense anger', 'Brief stress-related paranoia or dissociation', 'First-line treatment: dialectical behavior therapy'],
+         not: [['Mood episodes lasting days to weeks', 'a bipolar disorder'], ['Grandiosity and need for admiration', 'narcissistic personality disorder']] }
+  },
+  antidepressants: {
+    A: { see: ['GI upset and sexual dysfunction', 'Early jitteriness or insomnia', 'Hyponatremia in older adults; bleeding risk with NSAIDs', '4 to 6 weeks to work', 'Boxed warning for suicidal thinking under age 25'],
+         not: [['Priapism', 'trazodone'], ['A rise in blood pressure', 'venlafaxine'], ['Weight gain and sedation', 'mirtazapine'], ['A lower seizure threshold', 'bupropion']] },
+    B: { see: ['Nausea, sweating and sexual dysfunction', 'A small rise in blood pressure', 'Also treats neuropathic pain and fibromyalgia', 'Avoided with heavy alcohol use or liver disease', 'Discontinuation symptoms if stopped abruptly'],
+         not: [['Priapism', 'trazodone'], ['Weight gain', 'mirtazapine'], ['A lower seizure threshold', 'bupropion']] },
+    D: { see: ['Insomnia, anxiety, tremor and dry mouth', 'Weight neutral or weight loss', 'No sexual dysfunction', 'Lowers the seizure threshold; avoided in seizure and eating disorders', 'Also used for smoking cessation'],
+         not: [['Sexual dysfunction', 'SSRIs and SNRIs'], ['Weight gain', 'mirtazapine'], ['Priapism', 'trazodone']] },
+    E: { see: ['Sedation, often stronger at low doses', 'Increased appetite, weight gain and raised lipids', 'Little sexual dysfunction', 'Rare neutropenia'],
+         not: [['Priapism', 'trazodone'], ['Insomnia and activation', 'bupropion or SSRIs']] },
+    H: { see: ['Dissociation and sedation after each dose', 'A transient rise in blood pressure', 'Given in a certified clinic with 2 hours of monitoring', 'Works within hours to days', 'Used with an oral antidepressant'],
+         not: [['Weeks before any effect', 'oral antidepressants']] }
+  },
+  'mood-stabilizers': {
+    A: { see: ['Fine tremor, polyuria and thirst (nephrogenic diabetes insipidus)', 'Hypothyroidism', 'Weight gain, acne, leukocytosis', 'Toxicity: coarse tremor, ataxia, confusion, vomiting', 'Levels raised by thiazides, NSAIDs, ACE inhibitors and dehydration', 'Ebstein anomaly with first-trimester exposure'],
+         not: [['Neutropenia or agranulocytosis', 'clozapine or carbamazepine'], ['Hepatotoxicity or pancreatitis', 'valproate'], ['Stevens-Johnson syndrome', 'lamotrigine or carbamazepine'], ['Diabetes and metabolic syndrome', 'olanzapine or clozapine']] },
+    B: { see: ['Weight gain, tremor, hair loss', 'Hepatotoxicity and pancreatitis', 'Thrombocytopenia and raised ammonia', 'Neural tube defects and lower IQ with prenatal exposure', 'Raises lamotrigine levels'],
+         not: [['Hypothyroidism and nephrogenic diabetes insipidus', 'lithium'], ['Stevens-Johnson syndrome', 'lamotrigine']] },
+    C: { see: ['Rash; Stevens-Johnson syndrome if titrated too fast or combined with valproate', 'Headache and dizziness', 'Weight neutral', 'Better at preventing depression than mania'],
+         not: [['Weight gain', 'valproate or quetiapine'], ['Hypothyroidism', 'lithium']] },
+    D: { see: ['Sedation and orthostatic hypotension', 'Weight gain and dyslipidemia', 'Low risk of EPS', 'Treats both acute mania and bipolar depression'],
+         not: [['Raised prolactin', 'risperidone'], ['Marked QT prolongation', 'ziprasidone']] }
+  },
+  'anxiety-drugs': {
+    A: { see: ['Early jitteriness, so start low', '4 to 6 weeks to work', 'GI upset and sexual dysfunction'],
+         not: [['Relief within an hour', 'benzodiazepines or propranolol']] },
+    B: { see: ['Dizziness, headache, nausea', 'No sedation, dependence or withdrawal', '2 to 4 weeks to work', 'Not useful as needed or for panic'],
+         not: [['Dependence and withdrawal seizures', 'benzodiazepines']] },
+    C: { see: ['Dose-related rise in blood pressure', 'Nausea, sweating, sexual dysfunction', 'Harsh discontinuation symptoms'],
+         not: [['Weight gain and sedation', 'mirtazapine']] },
+    D: { see: ['Blunts tremor, palpitations and sweating, not the worry', 'Fatigue, bradycardia, hypotension', 'Bronchospasm in asthma', 'Can mask hypoglycemia'],
+         not: [['Sedation and dependence', 'benzodiazepines']] },
+    E: { see: ['First-dose orthostatic hypotension and fainting, so start low at bedtime', 'Dizziness'],
+         not: [['Bronchospasm', 'propranolol']] },
+    F: { see: ['Sedation, slowed reactions and memory problems', 'Falls in older adults', 'Tolerance, dependence and withdrawal seizures', 'Respiratory depression with alcohol or opioids', 'Reversed by flumazenil'],
+         not: [['No dependence risk', 'buspirone or hydroxyzine']] }
+  },
+  antipsychotics: {
+    C: { see: ['Akathisia, insomnia, nausea', 'Little weight gain, little QT effect', 'Prolactin stays low and can fall', 'Rarely impulse-control problems such as gambling'],
+         not: [['Agranulocytosis', 'clozapine'], ['The most weight gain', 'olanzapine or clozapine'], ['Raised prolactin', 'risperidone or paliperidone'], ['Marked QT prolongation', 'ziprasidone']] },
+    D: { see: ['Agranulocytosis: regular neutrophil counts', 'Dose-related seizures', 'Myocarditis in the first weeks', 'Sialorrhea, constipation and ileus', 'Weight gain and diabetes', 'The lowest risk of EPS and tardive dyskinesia', 'Lowers suicide risk'],
+         not: [['Raised prolactin', 'risperidone'], ['High EPS risk', 'haloperidol'], ['Marked QT prolongation', 'ziprasidone']] },
+    E: { see: ['Raised prolactin (it is risperidone’s active metabolite)', 'Dose-related EPS', 'Moderate weight gain', 'Injection-site pain', 'Given monthly, or every 3 or 6 months'],
+         not: [['Agranulocytosis', 'clozapine'], ['Akathisia with low prolactin', 'aripiprazole']] }
+  },
+  'substance-drugs': {
+    A: { see: ['Nausea, headache, dizziness', 'Liver injury at high doses: check liver tests', 'Precipitates withdrawal if opioids are on board', 'Blocks opioid pain relief', 'Also given as a monthly injection'],
+         not: [['Flushing and vomiting when drinking', 'disulfiram'], ['Diarrhea and renal dosing', 'acamprosate']] },
+    B: { see: ['Diarrhea', 'Renally cleared: adjust the dose, avoid at eGFR 30 or less', 'Taken three times a day', 'Safe in liver disease'],
+         not: [['Precipitated opioid withdrawal', 'naltrexone'], ['A reaction when drinking', 'disulfiram']] },
+    C: { see: ['Drinking causes flushing, throbbing headache, nausea, vomiting, palpitations and low blood pressure', 'Reactions to hidden alcohol in mouthwash, sauces or cough syrups', 'Hepatotoxicity', 'Works best with supervised dosing'],
+         not: [['Reduced craving without a reaction', 'naltrexone or acamprosate']] },
+    D: { see: ['Precipitated withdrawal if started too soon: wait for mild withdrawal', 'Constipation, headache, nausea', 'A ceiling on respiratory depression', 'Often combined with naloxone to deter injecting', 'Milder neonatal withdrawal than methadone'],
+         not: [['QT prolongation', 'methadone'], ['Daily dosing at a treatment program', 'methadone'], ['Pinpoint pupils and respiratory depression after a dose', 'full agonist overdose']] }
+  }
+};
+MODULES.forEach(function (m) { m.present = PRESENT[m.id] || {}; });
+
+/* ---------- Drug cards: mechanism, indications, side effects, contraindications ---------- */
+var SERT = { mech: 'Selective serotonin reuptake inhibitor: blocks the serotonin transporter (SERT).',
+  ind: ['Major depressive disorder', 'GAD, panic disorder, social anxiety disorder, PTSD, OCD', 'Premenstrual dysphoric disorder'],
+  se: ['GI upset and sexual dysfunction', 'Early activation or insomnia', 'Hyponatremia (SIADH) in older adults', 'Bleeding risk with NSAIDs or anticoagulants', 'Serotonin syndrome with other serotonergic drugs', 'Discontinuation symptoms', 'Boxed warning: suicidal thinking under age 25'],
+  ci: ['An MAOI within the past 14 days', 'Caution in bipolar disorder without a mood stabilizer (switch to mania)'] };
+var VENLA = { mech: 'Serotonin-norepinephrine reuptake inhibitor: mostly serotonin at low doses, norepinephrine added at higher doses.',
+  ind: ['Major depressive disorder', 'GAD, panic disorder, social anxiety disorder'],
+  se: ['Dose-related rise in blood pressure', 'Nausea, sweating, sexual dysfunction', 'Severe discontinuation symptoms (short half-life)'],
+  ci: ['Uncontrolled hypertension', 'An MAOI within the past 14 days'] };
+var DRUGS = {
+  antidepressants: {
+    A: SERT,
+    B: { mech: 'Serotonin-norepinephrine reuptake inhibitor (blocks SERT and NET).', ind: ['Major depressive disorder', 'GAD', 'Diabetic neuropathic pain, fibromyalgia, chronic musculoskeletal pain'], se: ['Nausea, dry mouth, sweating', 'Sexual dysfunction', 'A small rise in blood pressure', 'Discontinuation symptoms'], ci: ['Heavy alcohol use or chronic liver disease', 'Severe kidney impairment (CrCl under 30)', 'An MAOI within 14 days; uncontrolled narrow-angle glaucoma'] },
+    C: VENLA,
+    D: { mech: 'Norepinephrine-dopamine reuptake inhibitor (NDRI); also blocks nicotinic receptors.', ind: ['Major depressive disorder and seasonal affective disorder', 'Smoking cessation', 'Weight management (with naltrexone); ADHD (off-label)'], se: ['Insomnia, agitation, tremor, dry mouth', 'Weight loss', 'Dose-related seizures', 'Can raise blood pressure'], ci: ['Seizure disorder', 'Bulimia or anorexia nervosa', 'Abrupt alcohol or benzodiazepine withdrawal', 'An MAOI within 14 days'] },
+    E: { mech: 'Blocks presynaptic alpha-2 autoreceptors, increasing norepinephrine and serotonin release; also blocks 5-HT2, 5-HT3 and H1 receptors.', ind: ['Major depressive disorder, especially with insomnia, poor appetite or weight loss', 'Often used in older adults'], se: ['Sedation', 'Increased appetite, weight gain, raised lipids', 'Dry mouth', 'Rare agranulocytosis'], ci: ['An MAOI within 14 days', 'Caution with obesity or diabetes'] },
+    F: { mech: '5-HT2A antagonist and weak serotonin reuptake inhibitor; also blocks alpha-1 and H1 receptors.', ind: ['Insomnia at low doses (off-label)', 'Major depressive disorder at higher doses'], se: ['Sedation', 'Orthostatic hypotension (alpha-1 blockade)', 'Priapism, a urological emergency', 'QT prolongation'], ci: ['An MAOI within 14 days', 'Caution in older adults (falls)'] },
+    G: { mech: 'Tricyclic: blocks serotonin and norepinephrine reuptake; also blocks muscarinic, H1 and alpha-1 receptors, and sodium channels in overdose.', ind: ['Depression (not first line)', 'Neuropathic pain', 'Migraine prevention', 'Insomnia at low doses'], se: ['Anticholinergic: dry mouth, constipation, urinary retention, confusion', 'Sedation, weight gain, orthostasis', 'QRS widening and arrhythmia', 'Lethal in overdose: coma, convulsions, cardiotoxicity (treat with sodium bicarbonate)'], ci: ['Recent myocardial infarction or conduction disease', 'High suicide risk (overdose)', 'Older adults (anticholinergic burden)', 'Narrow-angle glaucoma, urinary retention'] },
+    H: { mech: 'NMDA glutamate receptor antagonist (the S-enantiomer of ketamine); a glutamate surge promotes new synapses.', ind: ['Treatment-resistant depression, with an oral antidepressant', 'Major depression with acute suicidal thoughts'], se: ['Dissociation and sedation after each dose', 'Dizziness and nausea', 'Transient rise in blood pressure', 'Potential for misuse'], ci: ['Aneurysm or arteriovenous malformation', 'Past intracerebral hemorrhage', 'Caution with uncontrolled hypertension or psychosis', 'No driving on the day of a dose'] }
+  },
+  'mood-stabilizers': {
+    A: { mech: 'Not fully known; inhibits inositol monophosphatase (dampening phosphoinositide signaling) and GSK-3.', ind: ['Acute mania', 'Bipolar I maintenance', 'Reduces suicide risk', 'Augmentation in treatment-resistant depression'], se: ['Fine tremor, polyuria (nephrogenic diabetes insipidus)', 'Hypothyroidism, weight gain, acne', 'Narrow therapeutic index; toxicity causes coarse tremor, ataxia, confusion', 'Ebstein anomaly with first-trimester exposure'], ci: ['Significant kidney impairment', 'Severe dehydration or sodium depletion', 'Caution with thiazides, NSAIDs, ACE inhibitors'] },
+    B: { mech: 'Blocks voltage-gated sodium channels and increases GABA (inhibits GABA transaminase).', ind: ['Acute mania, including mixed features and rapid cycling', 'Seizures', 'Migraine prevention'], se: ['Weight gain, tremor, hair loss', 'Hepatotoxicity, pancreatitis', 'Thrombocytopenia, raised ammonia', 'Neural tube defects and lower IQ with prenatal exposure'], ci: ['Pregnancy, or childbearing potential without reliable contraception', 'Liver disease', 'Urea cycle and mitochondrial (POLG) disorders'] },
+    C: { mech: 'Blocks voltage-gated sodium channels and reduces glutamate release.', ind: ['Bipolar maintenance, mainly preventing depression', 'Seizures'], se: ['Rash; Stevens-Johnson syndrome or toxic epidermal necrolysis', 'Headache, dizziness, double vision'], ci: ['A past serious rash on lamotrigine', 'Halve the dose with valproate, which raises its level'] },
+    D: { mech: 'D2 and 5-HT2A antagonist; also blocks H1 and alpha-1 receptors.', ind: ['Schizophrenia', 'Acute mania', 'Bipolar depression', 'Augmentation in major depression'], se: ['Sedation, orthostatic hypotension', 'Weight gain, dyslipidemia, raised glucose', 'Low EPS risk', 'Boxed warning: higher mortality in older adults with dementia'], ci: ['Caution with dementia-related psychosis', 'Caution with QT-prolonging drugs'] },
+    E: { mech: 'Blocks voltage-gated sodium channels; a strong CYP450 inducer.', ind: ['Trigeminal neuralgia (first line)', 'Focal seizures', 'Acute mania (extended release)'], se: ['Agranulocytosis and aplastic anemia', 'Hyponatremia (SIADH)', 'Stevens-Johnson syndrome, especially with HLA-B*15:02', 'Diplopia, ataxia; lowers levels of oral contraceptives and itself'], ci: ['Bone marrow suppression', 'HLA-B*15:02 positive', 'An MAOI within 14 days', 'Pregnancy (neural tube defects)'] },
+    F: SERT
+  },
+  'anxiety-drugs': {
+    A: SERT,
+    B: { mech: '5-HT1A receptor partial agonist.', ind: ['Generalized anxiety disorder, alone or added to an SSRI or SNRI'], se: ['Dizziness, headache, nausea, restlessness', 'No sedation, dependence or withdrawal', 'Takes 2 to 4 weeks to work'], ci: ['An MAOI within 14 days', 'Not useful as needed or for panic disorder'] },
+    C: VENLA,
+    D: { mech: 'Non-selective beta-adrenergic receptor antagonist (beta-1 and beta-2).', ind: ['Performance anxiety, taken as needed', 'Akathisia, essential tremor', 'Migraine prevention, hypertension, thyrotoxicosis symptoms'], se: ['Fatigue, bradycardia, hypotension', 'Bronchospasm', 'Masks hypoglycemia', 'Vivid dreams'], ci: ['Asthma or COPD with bronchospasm', 'Second- or third-degree heart block, marked bradycardia', 'Decompensated heart failure', 'Caution with insulin-treated diabetes'] },
+    E: { mech: 'Alpha-1 adrenergic receptor antagonist.', ind: ['Trauma-related nightmares (off-label)', 'Hypertension', 'Urinary symptoms of BPH'], se: ['First-dose orthostatic hypotension and fainting', 'Dizziness, headache'], ci: ['Caution with low blood pressure', 'Caution with PDE5 inhibitors'] },
+    F: { mech: 'Benzodiazepine: GABA-A positive allosteric modulator that increases how often the chloride channel opens.', ind: ['Short-term anxiety and agitation', 'Alcohol withdrawal', 'Catatonia', 'Status epilepticus'], se: ['Sedation, slowed reactions, memory problems', 'Falls in older adults', 'Tolerance, dependence, withdrawal seizures', 'Respiratory depression with alcohol or opioids', 'Reversed by flumazenil'], ci: ['Substance use disorder (relative)', 'Severe respiratory disease or sleep apnea', 'PTSD (worse outcomes)', 'Older adults (falls, confusion)'] },
+    G: { mech: 'H1 histamine receptor antagonist with anticholinergic effects.', ind: ['As-needed anxiety', 'Itching', 'Sedation'], se: ['Sedation', 'Dry mouth and other anticholinergic effects', 'QT prolongation'], ci: ['QT prolongation', 'Early pregnancy', 'Caution in older adults (delirium)'] }
+  },
+  antipsychotics: {
+    A: { mech: 'D2 and 5-HT2A receptor antagonist.', ind: ['Schizophrenia', 'Bipolar mania', 'Irritability in autism'], se: ['Raised prolactin: galactorrhea, amenorrhea, gynecomastia, sexual dysfunction', 'Dose-related EPS', 'Weight gain, orthostasis'], ci: ['Caution in older adults with dementia (boxed warning)', 'Caution with prolactin-sensitive tumors'] },
+    B: { mech: 'D2 and 5-HT2A receptor antagonist; also blocks H1 and muscarinic receptors.', ind: ['Schizophrenia', 'Bipolar mania', 'Acute agitation (injection)'], se: ['The most weight gain after clozapine', 'Diabetes and dyslipidemia', 'Sedation, anticholinergic effects'], ci: ['Caution with obesity, diabetes, metabolic syndrome', 'Caution in older adults with dementia (boxed warning)'] },
+    C: { mech: 'D2 partial agonist and 5-HT1A partial agonist; 5-HT2A antagonist.', ind: ['Schizophrenia (oral or monthly injection)', 'Bipolar mania', 'Augmentation in major depression', 'Tourette syndrome, irritability in autism'], se: ['Akathisia, insomnia, nausea', 'Rare impulse-control problems (gambling)', 'Little weight gain, prolactin or QT effect'], ci: ['Caution in older adults with dementia (boxed warning)'] },
+    D: { mech: 'Antagonist at D4 more than D2, and at 5-HT2A; also blocks H1, muscarinic and alpha-1 receptors.', ind: ['Treatment-resistant schizophrenia', 'Suicidal behavior in schizophrenia', 'Psychosis in Parkinson disease (low dose)'], se: ['Agranulocytosis: regular neutrophil counts', 'Seizures, myocarditis', 'Sialorrhea, constipation, ileus', 'Weight gain and diabetes, orthostasis', 'Lowest EPS and tardive dyskinesia risk'], ci: ['Low neutrophil count or past clozapine agranulocytosis', 'Uncontrolled epilepsy', 'Paralytic ileus'] },
+    E: { mech: 'The active metabolite of risperidone (9-hydroxy-risperidone): D2 and 5-HT2A antagonist, given as a long-acting injection.', ind: ['Schizophrenia and schizoaffective disorder maintenance', 'Repeated nonadherence and relapse'], se: ['Raised prolactin', 'Dose-related EPS', 'Weight gain', 'Injection-site reactions'], ci: ['Past reaction to risperidone or paliperidone', 'Caution with kidney impairment (renally cleared)', 'Caution with QT-prolonging drugs'] },
+    F: { mech: 'High-potency D2 receptor antagonist (first generation, butyrophenone).', ind: ['Acute agitation and psychosis', 'Agitation in delirium', 'Tourette syndrome', 'Long-acting decanoate injection'], se: ['Acute dystonia, akathisia, parkinsonism, tardive dyskinesia', 'Neuroleptic malignant syndrome', 'Raised prolactin', 'QT prolongation, especially IV'], ci: ['Parkinson disease or Lewy body dementia', 'Caution with long QT'] },
+    G: { mech: 'D2 and 5-HT2A antagonist; 5-HT1A agonist; weak serotonin and norepinephrine reuptake inhibition.', ind: ['Schizophrenia', 'Bipolar mania', 'Acute agitation (injection)'], se: ['QT prolongation, the most of the drugs listed', 'Somnolence', 'Little weight gain', 'Poor absorption unless taken with a meal'], ci: ['Long QT, recent myocardial infarction, uncompensated heart failure', 'Other QT-prolonging drugs'] }
+  },
+  'substance-drugs': {
+    A: { mech: 'Competitive mu opioid receptor antagonist; blunts the reward from alcohol.', ind: ['Alcohol use disorder', 'Opioid use disorder after 7 to 10 opioid-free days', 'Monthly injection or daily pill'], se: ['Nausea, headache, dizziness', 'Liver injury at high doses', 'Precipitated withdrawal if opioids are present'], ci: ['Current opioid use or need for opioid pain relief', 'Acute hepatitis or liver failure'] },
+    B: { mech: 'Modulates NMDA glutamate signaling, restoring the glutamate-GABA balance after chronic drinking.', ind: ['Maintaining abstinence from alcohol after withdrawal'], se: ['Diarrhea', 'Rarely, mood changes or suicidal thoughts'], ci: ['Severe kidney impairment (CrCl 30 or less)'] },
+    C: { mech: 'Irreversibly inhibits aldehyde dehydrogenase, so acetaldehyde builds up when alcohol is consumed.', ind: ['Alcohol use disorder in a motivated patient seeking abstinence, ideally with supervised dosing'], se: ['Disulfiram-alcohol reaction: flushing, headache, vomiting, palpitations, hypotension', 'Hepatitis', 'Neuropathy, metallic taste'], ci: ['Alcohol within the past 12 hours', 'Severe heart disease', 'Psychosis', 'Pregnancy; metronidazole'] },
+    D: { mech: 'High-affinity mu opioid partial agonist (and kappa antagonist), with a ceiling on respiratory depression.', ind: ['Opioid use disorder: detox and maintenance, including pregnancy', 'Pain'], se: ['Precipitated withdrawal if started too soon', 'Constipation, nausea, headache'], ci: ['Caution with severe liver impairment', 'Caution with benzodiazepines or respiratory disease'] },
+    E: { mech: 'Long-acting full mu opioid agonist; also an NMDA antagonist.', ind: ['Opioid use disorder maintenance through an opioid treatment program, including pregnancy', 'Chronic pain'], se: ['QT prolongation and torsades de pointes', 'Respiratory depression, especially early in dosing or with benzodiazepines', 'Constipation, sedation; many CYP interactions'], ci: ['Long QT', 'Significant respiratory depression', 'Paralytic ileus'] },
+    F: { mech: 'Short-acting, high-affinity competitive mu opioid antagonist that displaces the agonist.', ind: ['Opioid overdose reversal (nasal, IM or IV)', 'Combined with buprenorphine to deter injection'], se: ['Acute withdrawal and agitation', 'Short half-life: overdose can return with long-acting opioids'], ci: ['None in an emergency'] }
+  }
+};
+MODULES.forEach(function (m) { m.drugs = DRUGS[m.id] || null; });
+/* ---------- Therapy cards: how it works, format, uses, key concepts, look-alikes ---------- */
+var T_CBT = { how: 'Thoughts, feelings and behaviors interact in a cycle (the CBT triangle). Changing thoughts or behaviors changes feelings.',
+  fmt: ['Structured and manual-guided, with homework between sessions', 'Usually weekly; classically 8 to 16 one-hour sessions over weeks to months'],
+  uses: ['Depression, GAD, panic disorder, social anxiety disorder, phobias', 'Also psychosis (reduces relapse in schizophrenia) and substance use disorders', 'Specialized forms: ERP (OCD), CPT (PTSD), habit reversal training, CBT for insomnia'],
+  key: ['Automatic thoughts → cognitive distortions (filtering, overgeneralization, catastrophizing, mind reading) → schema, a core belief such as “I am an unlikable person”', 'Cognitive restructuring: examine the evidence, estimate how likely the thought is, propose alternatives, and eventually replace the schema', 'Behavioral side: exposure for anxiety, behavioral activation for depression, not performing compulsions in OCD'],
+  look: [['Scheduling rewarding activities', 'behavioral activation'], ['Dreams, childhood and feelings toward the therapist', 'psychodynamic therapy'], ['Exposure with the compulsion blocked', 'ERP (OCD)']] };
+var T_DBT = { how: 'A skills-based behavioral therapy developed (by Marsha Linehan) specifically for borderline personality disorder.',
+  fmt: ['Individual therapy plus group skills training, with as-needed phone coaching', 'About 1 year; intensive'],
+  uses: ['Borderline personality disorder: fewer self-harm episodes, suicide attempts and hospitalizations', 'Adolescents with self-injury; depression, substance use and eating disorders'],
+  key: ['Four skill areas: mindfulness, emotion regulation, distress tolerance, interpersonal effectiveness', 'Borderline personality disorder is treatable, and therapy is the treatment of choice; mentalization-based, transference-focused and schema-focused therapy are also effective'],
+  look: [['Challenging distorted thoughts, short course', 'CBT'], ['Insight into childhood patterns', 'psychodynamic therapy'], ['Exploring ambivalence about one behavior', 'motivational interviewing']] };
+var THERAPY = {
+  'therapy-name': {
+    A: T_CBT,
+    B: { how: 'A behavioral part of CBT for depression. Rewarding activities improve mood, and the better mood makes the activity more likely to be repeated (positive reinforcement).',
+      fmt: ['Therapist and patient set specific, achievable targets for the week, such as socializing twice', 'Progress is reviewed at the next session'],
+      uses: ['Depression', 'Perinatal depression (with attention to the busy parent)'],
+      key: ['Positive reinforcement', 'Self-efficacy grows as goals are met', 'Change the behavior first; thoughts and feelings follow over time'],
+      look: [['Testing distorted thoughts against the evidence', 'cognitive restructuring (CBT)'], ['Facing a feared object step by step', 'graduated exposure'], ['Encouragement without explicit goals', 'supportive psychotherapy']] },
+    C: { how: 'Grew out of psychodynamic therapy for patients who could not tolerate, or were too symptomatic for, insight-oriented work. It builds a positive relationship, relieves here-and-now suffering, and supports and expands the coping the patient already uses.',
+      fmt: ['Weekly or less, often open-ended', 'Part of most medication-check visits; any clinician can use it, even briefly at the bedside', 'Suits high- or low-functioning, more or less symptomatic patients; often the control condition in studies'],
+      uses: ['Difficult situations and transitions: a new diagnosis, a loss, failing a class', 'Depression, anxiety, personality disorders and psychosis (slide pairings)'],
+      key: ['Reflecting helps the patient feel heard: “You have faced a lot this month.”', 'Naming gives a sense of mastery over the feeling: “You sound overwhelmed.”', 'Normalizing reduces guilt and shame: “Anyone facing this would feel that way.”', 'Reframing offers a more hopeful, agentive view: “Missing them shows how strong your attachments are.”', 'The therapeutic alliance (interest, empathy, understanding, hope) predicts outcome in every therapy'],
+      look: [['Explicit goals and homework', 'CBT or behavioral activation'], ['Exploring unconscious patterns and transference', 'psychodynamic therapy'], ['Exploring ambivalence about a behavior', 'motivational interviewing']] },
+    D: { how: 'Unconscious thoughts, feelings and conflicts, rooted in childhood experiences and early relationships, shape emotions, behavior and relationships. Change comes from insight into those patterns and from the relationship with the therapist.',
+      fmt: ['Once a week or more (classic psychoanalysis: 3 to 5 times a week)', 'Months to years', 'The patient speaks freely: whatever comes to mind, feelings, dreams and fantasies, and feelings about the therapist'],
+      uses: ['Depression and anxiety', 'Relationship problems', 'Personality disorders, including borderline'],
+      key: ['Transference: the patient’s feelings about the therapist, from the therapist’s real traits and from important past relationships', 'Countertransference: the clinician’s feelings about the patient, from the interaction and from the clinician’s own past. It happens in every medical setting, and unexamined it can bias care', 'Defenses: automatic, unconscious ways of coping with painful feelings, from adaptive (humor, sublimation, suppression) to costly (splitting, projection, denial). High-yield for boards; not on this course’s final exam', 'Clues to unconscious patterns: “I’m stuck,” the same problem in every relationship, “the same sad me” after a big life change'],
+      look: [['Here-and-now support of existing coping', 'supportive psychotherapy'], ['A manual, homework and a planned end', 'CBT'], ['Current relationship conflicts as the driver of depression', 'interpersonal therapy']] },
+    E: { how: 'Explores and resolves ambivalence about a behavior change, meeting the patient at their stage of change. Change the patient chooses is far more likely to last than change the clinician prescribes.',
+      fmt: ['Common in primary care and mental health care', 'Often brief and built into routine visits'],
+      uses: ['Reducing alcohol or other substance use, quitting smoking', 'Taking medications consistently, starting exercise, managing diabetes', 'Anorexia nervosa (slide list)'],
+      key: ['Stages of change: precontemplation, contemplation, preparation, action, maintenance', 'Ask how the behavior helps and what its downsides are; as the patient voices both, the ambivalence becomes clear', 'Reflect and explore rather than advise'],
+      look: [['Telling the patient what to do', 'advice, not MI'], ['Skills for urges and intense emotions', 'DBT'], ['Encouragement through a hard time', 'supportive psychotherapy']] },
+    F: T_DBT,
+    G: { how: 'Problems in relationships drive depression; improving relationships relieves the depression, which improves relationships further.',
+      fmt: ['Focuses on current relationships, mapping the patient’s “cast of characters”'],
+      uses: ['Depression, including perinatal depression', 'Grief and bereavement', 'Anorexia nervosa (slide list)'],
+      key: ['Focus areas include role transitions, grief and loss, and interpersonal conflict', 'The exam review deck lists IPT for reference only; it is not discussed in depth in this course'],
+      look: [['Thoughts and distortions', 'CBT'], ['Childhood roots and transference', 'psychodynamic therapy']] }
+  },
+  'therapy-match': {
+    A: T_CBT,
+    B: { how: 'A type of CBT. Repeated exposure to the feared trigger while the usual compulsion is blocked weakens the links between trigger and distress, and between ritual and relief.',
+      fmt: ['Build a hierarchy of obsessions, compulsions and avoided situations from least to most anxiety-provoking; climb it, habituating at each step', 'About 15 to 20 ninety-minute sessions (intensive: three 3-hour sessions a week for 4 to 8 weeks)'],
+      uses: ['OCD: the gold standard, equal or superior to medication'],
+      key: ['Exchanges short-term anxiety for long-term improvement', 'Example: touch the toilet seat, then do not wash'],
+      look: [['Trauma memories and reminders', 'prolonged exposure (PTSD)'], ['Exposure to a feared object, no rituals', 'systematic desensitization or flooding'], ['A competing response to a body-focused habit', 'habit reversal training']] },
+    C: { how: 'A trauma-focused therapy: the patient approaches the thoughts, feelings and situations they have been avoiding, in a safe way, and learns that reminders of the trauma do not need to be avoided.',
+      fmt: ['Exposure can briefly raise symptoms before they fall'],
+      uses: ['PTSD: with CPT, the most effective therapy; therapy is the gold-standard treatment for PTSD'],
+      key: ['Avoidance keeps anxiety going', 'Skills-based therapies (CBT, DBT, ACT) build coping; trauma-based therapies (PE, CPT) work on the trauma itself', 'Avoid benzodiazepines in PTSD: they may block recovery'],
+      look: [['Questioning beliefs about the trauma in writing', 'CPT'], ['Exposure with the compulsion blocked', 'ERP (OCD)'], ['All-at-once exposure to a feared object', 'flooding (phobia)']] },
+    D: { how: 'A trauma-focused form of CBT. The thoughts, feelings and meanings of the event are revisited and questioned by writing a detailed account of the trauma and reading it with the therapist and at home.',
+      fmt: ['The account is written and read in session and at home'],
+      uses: ['PTSD: with PE, the most effective therapy'],
+      key: ['Questioning the meanings drawn from the trauma', 'Skills-based therapies (CBT, DBT, ACT) build coping; trauma-based therapies (PE, CPT) work on the trauma itself'],
+      look: [['Approaching avoided situations and memories', 'prolonged exposure'], ['Labeling everyday distortions', 'standard CBT']] },
+    E: { how: 'Exposure therapy: relaxation techniques are taught first, then the patient is exposed gradually to the feared stimulus up a fear hierarchy, from least to most distressing.',
+      fmt: ['Short-term and skills-focused', 'Imagined (imaginal) or real-life (in vivo) exposure'],
+      uses: ['Specific phobia; medications generally do not help'],
+      key: ['Fear hierarchy', 'Avoidance perpetuates fear; exposure extinguishes it', 'Adjunctive D-cycloserine is under study'],
+      look: [['Starting at the most feared level', 'flooding'], ['Exposure with the compulsion blocked', 'ERP (OCD)']] },
+    F: { how: 'Exposure therapy that starts at the most distressing level, usually in real life, and does not let the patient withdraw until they feel calm and in control.',
+      fmt: ['Short-term; faster but more distressing than systematic desensitization'],
+      uses: ['Specific phobia'],
+      key: ['Abrupt rather than gradual exposure', 'Avoidance perpetuates fear; exposure extinguishes it'],
+      look: [['A gradual hierarchy after relaxation training', 'systematic desensitization'], ['Trauma memories and reminders', 'prolonged exposure (PTSD)']] },
+    G: { how: 'A behavioral form of CBT for body-focused repetitive behaviors.',
+      fmt: ['About 2 to 3 months, then maintenance sessions to prevent relapse'],
+      uses: ['Trichotillomania and excoriation (skin-picking) disorder', 'Especially automatic behavior, done outside awareness'],
+      key: ['Self-monitoring: record each episode', 'Awareness training: notice the behavior and high-risk situations', 'Stimulus control: remove tools, change settings', 'Competing response: a physical action incompatible with the behavior, held until the urge passes'],
+      look: [['Exposure with a compulsion blocked', 'ERP (OCD)'], ['Rituals to neutralize an obsession', 'OCD, not a body-focused habit']] },
+    H: T_DBT
+  }
+};
+MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
+
+
+
+(function () {
+  var mod = MODULES[0];
+  var states = {};            // per-module slot choices
+  var picked = null, shown = false, dragSlot = null;
+  var resultsCache = {};
+
+  function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+  function txt(s) { return document.createTextNode(s); }
+  function st() { return states[mod.id]; }
+  function cur() { return mod.slots.map(function (s) { return st()[s.id]; }); }
+  function diag(arr) { if (arr.some(function (v) { return !v; })) return null; return mod.diagnose.apply(null, arr); }
+  function ansName(L) { for (var i = 0; i < mod.answers.length; i++) if (mod.answers[i][0] === L) return L + '. ' + mod.answers[i][1]; return L; }
+  function label(r) { return !r ? '' : r.kind === 'ok' ? ansName(r.letter) : r.title; }
+
+  function allCombos() {
+    if (resultsCache[mod.id]) return resultsCache[mod.id];
+    var out = [[]];
+    mod.slots.forEach(function (s) { var n = []; out.forEach(function (o) { Object.keys(s.opts).forEach(function (k) { n.push(o.concat(k)); }); }); out = n; });
+    resultsCache[mod.id] = out.map(function (c) { return { c: c, r: mod.diagnose.apply(null, c) }; });
+    return resultsCache[mod.id];
+  }
+  // Nearest combinations (fewest slot changes) that give letter L.
+  function fixesFor(L, c) {
+    var targets = allCombos().filter(function (x) { return x.r.kind === 'ok' && x.r.letter === L; });
+    if (!targets.length) return null;
+    var best = 99, fixes = [];
+    targets.forEach(function (x) {
+      var diff = [];
+      x.c.forEach(function (v, i) { if (v !== c[i]) diff.push([i, v]); });
+      if (diff.length < best) { best = diff.length; fixes = [diff]; } else if (diff.length === best) fixes.push(diff);
+    });
+    return fixes;
+  }
+
+  // ---------- tabs ----------
+  var tabsEl = document.getElementById('tabs');
+  MODULES.forEach(function (m) {
+    states[m.id] = {};
+    m.slots.forEach(function (s) { states[m.id][s.id] = null; });
+    var p = m.presets[0]; m.slots.forEach(function (s, i) { states[m.id][s.id] = p[i]; });
+    var b = el('button', 'tab', m.tab);
+    b.type = 'button'; b.setAttribute('role', 'tab'); b.id = 'tab-' + m.id; b.dataset.id = m.id;
+    b.setAttribute('aria-controls', 'panel');
+    b.addEventListener('click', function () { if (location.hash !== '#' + m.id) location.hash = m.id; else select(m.id); });
+    b.addEventListener('keydown', function (ev) {
+      var i = MODULES.indexOf(m), j = null;
+      if (ev.key === 'ArrowRight') j = (i + 1) % MODULES.length;
+      if (ev.key === 'ArrowLeft') j = (i - 1 + MODULES.length) % MODULES.length;
+      if (j != null) { ev.preventDefault(); location.hash = MODULES[j].id; document.getElementById('tab-' + MODULES[j].id).focus(); }
+    });
+    var g = m.group || 'Topics', row = document.getElementById('tabrow-' + g);
+    if (!row) {
+      row = el('div', 'tabrow'); row.id = 'tabrow-' + g; row.setAttribute('role', 'presentation');
+      row.appendChild(el('span', 'tabgroup', g));
+      tabsEl.appendChild(row);
+    }
+    row.appendChild(b);
+  });
+  function fromHash() { var h = location.hash.replace('#', ''); return MODULES.some(function (m) { return m.id === h; }) ? h : MODULES[0].id; }
+  window.addEventListener('hashchange', function () { select(fromHash()); });
+
+  function select(id) {
+    mod = MODULES.filter(function (m) { return m.id === id; })[0];
+    picked = null; shown = false;
+    document.querySelectorAll('.tab').forEach(function (t) {
+      var on = t.dataset.id === id;
+      t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
+    });
+    document.getElementById('panel').setAttribute('aria-labelledby', 'tab-' + id);
+    buildToolbar(); buildTray(); buildAnswers(); buildRuler();
+    document.getElementById('footer').textContent = 'Example cases for teaching. ' + mod.footer;
+    update();
+  }
+
+  // ---------- toolbar ----------
+  function buildToolbar() {
+    var tb = document.getElementById('toolbar'); tb.textContent = '';
+    tb.appendChild(el('span', 'label', 'Cases'));
+    mod.presets.forEach(function (p, i) {
+      var b = el('button', 'btn preset', String(i + 1)); b.type = 'button'; b.dataset.preset = i;
+      b.addEventListener('click', function () { mod.slots.forEach(function (s, j) { st()[s.id] = p[j]; }); changed(); });
+      tb.appendChild(b);
+    });
+    var r = el('button', 'btn', 'Random'); r.type = 'button';
+    r.addEventListener('click', function () {
+      var clean = allCombos().filter(function (x) { return x.r.kind === 'ok'; });
+      var x = clean[Math.floor(Math.random() * clean.length)];
+      mod.slots.forEach(function (s, j) { st()[s.id] = x.c[j]; }); changed();
+    });
+    var c = el('button', 'btn', 'Clear slots'); c.type = 'button';
+    c.addEventListener('click', function () { mod.slots.forEach(function (s) { st()[s.id] = null; }); changed(); });
+    tb.appendChild(r); tb.appendChild(c);
+  }
+
+  // ---------- tray ----------
+  function buildTray() {
+    var tray = document.getElementById('tray'); tray.textContent = '';
+    mod.slots.forEach(function (slot) {
+      var g = el('div', 'group'); g.appendChild(el('h3', '', slot.id + ' · ' + slot.name));
+      var list = el('div', 'chips');
+      Object.keys(slot.opts).forEach(function (k) {
+        var b = el('button', 'chip'); b.type = 'button'; b.draggable = true;
+        b.id = 'chip-' + mod.id + '-' + slot.id + k; b.dataset.slot = slot.id; b.dataset.key = k;
+        b.setAttribute('aria-label', 'Slot ' + slot.id + ' option ' + k + ': ' + slot.opts[k] + '. Press to place.');
+        b.appendChild(el('span', 'k', slot.id + k)); b.appendChild(el('span', '', slot.opts[k]));
+        b.addEventListener('click', function () { place(slot.id, k); });
+        b.addEventListener('dragstart', function (ev) { ev.dataTransfer.setData('text/plain', slot.id + k); ev.dataTransfer.effectAllowed = 'copy'; b.classList.add('dragging'); dragSlot = slot.id; });
+        b.addEventListener('dragend', function () { b.classList.remove('dragging'); dragSlot = null; clearOver(); });
+        list.appendChild(b);
+      });
+      g.appendChild(list); tray.appendChild(g);
+    });
+    tray.appendChild(el('p', 'hint', 'Each option fits only its own slot. Click a filled slot in the case to empty it.'));
+  }
+
+  // ---------- answers ----------
+  function buildAnswers() {
+    var a = document.getElementById('answers'); a.textContent = '';
+    mod.answers.forEach(function (x) {
+      var b = el('button', 'ans'); b.type = 'button'; b.dataset.letter = x[0]; b.id = 'ans-' + x[0];
+      b.appendChild(el('span', 'let', x[0])); b.appendChild(el('span', 'txt', x[1])); b.appendChild(el('span', 'flag'));
+      b.addEventListener('click', function () { picked = x[0]; update(); });
+      a.appendChild(b);
+    });
+  }
+
+  // ---------- ruler ----------
+  function pos(d) { return Math.log(Math.max(d, 1)) / Math.log(mod.ruler.max) * 100; }
+  function buildRuler() {
+    var r = document.getElementById('ruler'); r.hidden = !mod.ruler;
+    if (!mod.ruler) return;
+    document.getElementById('ruler-label').textContent = mod.ruler.label;
+    var t = document.getElementById('track'); t.textContent = '';
+    t.appendChild(el('div', 'bar'));
+    mod.ruler.ticks.forEach(function (k) { var d = el('div', 'tick'); d.style.left = pos(k[0]) + '%'; d.appendChild(el('span', '', k[1])); t.appendChild(d); });
+    var m = el('div', 'mark'); m.id = 'mark'; t.appendChild(m);
+  }
+
+  // ---------- stem ----------
+  function zone(id, bad) {
+    var slot = mod.slots[id - 1], v = st()[id];
+    var z = el('span', 'zone'); z.tabIndex = 0; z.dataset.slot = id; z.setAttribute('role', 'button');
+    z.appendChild(el('span', 'tag', v ? id + v : id + ' · ' + slot.name.toUpperCase()));
+    if (v) { z.classList.add('filled'); z.appendChild(txt(slot.opts[v])); z.setAttribute('aria-label', 'Slot ' + id + ' filled with option ' + v + (bad ? ', rules out the chosen diagnosis' : '') + '. Press to empty.'); }
+    else z.setAttribute('aria-label', 'Empty slot ' + id + ', ' + slot.name + '. Drop an option here.');
+    if (bad) z.classList.add('conflict');
+    z.addEventListener('click', function () { if (st()[id]) { st()[id] = null; changed(); } });
+    z.addEventListener('keydown', function (ev) { if ((ev.key === 'Enter' || ev.key === ' ') && st()[id]) { ev.preventDefault(); st()[id] = null; changed(); } });
+    z.addEventListener('dragover', function (ev) { ev.preventDefault(); if (dragSlot === id) { z.classList.add('over'); ev.dataTransfer.dropEffect = 'copy'; } else { z.classList.add('reject'); ev.dataTransfer.dropEffect = 'none'; } });
+    z.addEventListener('dragleave', function () { z.classList.remove('over', 'reject'); });
+    z.addEventListener('drop', function (ev) { ev.preventDefault(); clearOver(); var d = ev.dataTransfer.getData('text/plain'); if (d && +d.charAt(0) === id) place(id, d.slice(1)); });
+    return z;
+  }
+  function clearOver() { document.querySelectorAll('.zone').forEach(function (z) { z.classList.remove('over', 'reject'); }); }
+  function renderStem(bad) {
+    var s = document.getElementById('stem'); s.textContent = '';
+    mod.stem.forEach(function (part) { s.appendChild(typeof part === 'number' ? zone(part, bad.indexOf(part) > -1) : txt(part)); });
+  }
+  function place(id, k) {
+    var f = document.activeElement && document.activeElement.id;
+    st()[id] = k; changed();
+    if (f) { var x = document.getElementById(f); if (x) x.focus(); }
+  }
+  function changed() { picked = null; shown = false; update(); }
+
+  // ---------- feedback ----------
+  function slotItem(id, key, note) {
+    var li = el('li'), w = el('span', 'what');
+    w.appendChild(el('span', 'code', id + key));
+    w.appendChild(txt(mod.slots[id - 1].name + ': ' + mod.slots[id - 1].opts[key]));
+    li.appendChild(w);
+    if (note) li.appendChild(el('span', '', note));
+    return li;
+  }
+  function fixLine(fix) {
+    var c = cur();
+    return fix.map(function (d) { var id = d[0] + 1; return id + c[d[0]] + ' → ' + id + d[1]; }).join(' and ');
+  }
+  function whyNot(box, L) {
+    var c = cur(), fixes = fixesFor(L, c);
+    if (!fixes) { box.appendChild(el('p', '', mod.never[L] || ('No combination of options in this case gives ' + ansName(L) + '.'))); return []; }
+    var slots = [];
+    fixes.forEach(function (f) { f.forEach(function (d) { if (slots.indexOf(d[0] + 1) < 0) slots.push(d[0] + 1); }); });
+    slots.sort();
+    box.appendChild(el('h3', '', slots.length === 1 ? 'This slot rules it out' : 'These slots rule it out'));
+    var ul = el('ul');
+    slots.forEach(function (id) { ul.appendChild(slotItem(id, st()[id], (mod.needs[L] && mod.needs[L][id]) || ('Changing this slot is part of the quickest route to ' + L + '.'))); });
+    box.appendChild(ul);
+    var p = el('p', 'fix');
+    p.appendChild(txt(fixes.length > 1 ? 'Quickest ways to make it ' + L + ': ' : 'Quickest way to make it ' + L + ': '));
+    fixes.slice(0, 3).forEach(function (f, i) { if (i) p.appendChild(txt(', or ')); p.appendChild(el('span', 'code', fixLine(f))); });
+    p.appendChild(txt('.'));
+    box.appendChild(p);
+    return slots;
+  }
+  function alsoWorks(r) {
+    var c = cur(), out = [];
+    mod.slots.forEach(function (slot, i) {
+      Object.keys(slot.opts).forEach(function (k) {
+        if (k === c[i]) return;
+        var alt = c.slice(); alt[i] = k;
+        var r2 = diag(alt);
+        if (r2 && r2.kind === 'ok' && r2.letter === r.letter) out.push([slot.id, k]);
+      });
+    });
+    return out;
+  }
+  function buildFeedback(r) {
+    var box = el('div', 'fb'), bad = [];
+    var isRight = picked && r.kind === 'ok' && r.letter === picked;
+    if (isRight || (shown && r.kind === 'ok')) {
+      box.classList.add('ok');
+      box.appendChild(el('span', 'pill', isRight ? 'Correct' : 'Answer'));
+      box.appendChild(el('p', 'dx', ansName(r.letter)));
+      box.appendChild(el('p', '', r.why));
+      var pr = mod.present && mod.present[r.letter];
+      var isDx = mod.group !== 'Pharmacology';
+      if (mod.therapy && mod.therapy[r.letter]) box.appendChild(therapyCard(r.letter, false));
+      else if (mod.drugs && mod.drugs[r.letter]) box.appendChild(drugCard(r.letter, false, pr && pr.not));
+      else if (pr) {
+        var cols = el('div', 'pres');
+        if (pr.see && pr.see.length) {
+          var c1 = el('div'); c1.appendChild(el('h3', '', isDx ? 'What else you would expect' : 'Know this drug for'));
+          var u1 = el('ul', 'plist'); pr.see.forEach(function (t) { u1.appendChild(el('li', '', t)); }); c1.appendChild(u1); cols.appendChild(c1);
+        }
+        if (pr.not && pr.not.length) {
+          var c2 = el('div'); c2.appendChild(el('h3', '', isDx ? 'Findings that point elsewhere' : 'Effects that belong to other drugs'));
+          var u2 = el('ul', 'plist');
+          pr.not.forEach(function (t) { var li = el('li'); li.appendChild(el('b', '', t[0])); li.appendChild(txt(' \u2192 ' + t[1])); u2.appendChild(li); });
+          c2.appendChild(u2); cols.appendChild(c2);
+        }
+        box.appendChild(cols);
+      }
+      var also = alsoWorks(r);
+      var line = el('p', 'also');
+      if (also.length) {
+        line.appendChild(el('span', 'alsolabel', 'Also gives ' + r.letter + ':'));
+        also.forEach(function (p) {
+          var cd = el('span', 'code pillcode', p[0] + p[1]);
+          cd.title = mod.slots[p[0] - 1].name + ': ' + mod.slots[p[0] - 1].opts[p[1]];
+          line.appendChild(cd);
+        });
+      } else line.appendChild(el('span', 'none', 'No other single option keeps this answer.'));
+      box.appendChild(line);
+      return { box: box, bad: bad };
+    }
+    if (r.kind === 'gray') {
+      box.classList.add('gray');
+      box.appendChild(el('span', 'pill', 'No clean answer'));
+      box.appendChild(el('p', 'dx', r.title));
+      box.appendChild(el('p', '', r.why));
+      if (picked) { box.appendChild(el('h3', '', 'Why not ' + ansName(picked))); bad = whyNot(box, picked); }
+      if (picked && mod.drugs && mod.drugs[picked]) box.appendChild(drugCard(picked, true));
+      if (picked && mod.therapy && mod.therapy[picked]) box.appendChild(therapyCard(picked, true));
+      return { box: box, bad: bad };
+    }
+    box.classList.add('no');
+    box.appendChild(el('span', 'pill', 'Not quite'));
+    box.appendChild(el('p', 'dx', ansName(picked) + ' does not fit this case'));
+    bad = whyNot(box, picked);
+    if (bad.length) box.appendChild(el('p', '', 'The highlighted slots in the case are the ones to look at. Pick again, or show the answer.'));
+    if (mod.drugs && mod.drugs[picked]) box.appendChild(drugCard(picked, true));
+    if (mod.therapy && mod.therapy[picked]) box.appendChild(therapyCard(picked, true));
+    return { box: box, bad: bad };
+  }
+
+  // Drug card: mechanism, indications, side effects, contraindications (compact = for a wrong pick).
+  function drugCard(L, compact, notList) {
+    var d = mod.drugs[L], card = el('div', 'card' + (compact ? ' compact' : ''));
+    if (compact) card.appendChild(el('h3', '', 'About ' + ansName(L).replace(/^[A-Z]\. /, '')));
+    var mech = el('p', 'mech'); mech.appendChild(el('b', '', 'Mechanism: ')); mech.appendChild(txt(d.mech)); card.appendChild(mech);
+    var grid = el('div', 'pres');
+    function sec(title, items) {
+      if (!items || !items.length) return;
+      var c = el('div'); c.appendChild(el('h3', '', title));
+      var u = el('ul', 'plist'); items.forEach(function (t) { u.appendChild(el('li', '', t)); }); c.appendChild(u); grid.appendChild(c);
+    }
+    sec('Indications', d.ind);
+    sec('Contraindications and cautions', d.ci);
+    if (!compact) sec('Side effects', d.se);
+    if (!compact && notList && notList.length) {
+      var c = el('div'); c.appendChild(el('h3', '', 'Effects that belong to other drugs'));
+      var u = el('ul', 'plist');
+      notList.forEach(function (t) { var li = el('li'); li.appendChild(el('b', '', t[0])); li.appendChild(txt(' → ' + t[1])); u.appendChild(li); });
+      c.appendChild(u); grid.appendChild(c);
+    }
+    card.appendChild(grid);
+    return card;
+  }
+
+
+  // Therapy card: how it works, format, uses, key concepts, look-alikes (compact = for a wrong pick).
+  function therapyCard(L, compact) {
+    var d = mod.therapy[L], card = el('div', 'card' + (compact ? ' compact' : ''));
+    if (compact) card.appendChild(el('h3', '', 'About ' + ansName(L).replace(/^[A-Z]\. /, '')));
+    var how = el('p', 'mech'); how.appendChild(el('b', '', 'How it works: ')); how.appendChild(txt(d.how)); card.appendChild(how);
+    var grid = el('div', 'pres');
+    function sec(title, items) {
+      if (!items || !items.length) return;
+      var c = el('div'); c.appendChild(el('h3', '', title));
+      var u = el('ul', 'plist'); items.forEach(function (t) { u.appendChild(el('li', '', t)); }); c.appendChild(u); grid.appendChild(c);
+    }
+    sec('Used for', d.uses);
+    sec('Format', d.fmt);
+    if (!compact) sec('Key concepts', d.key);
+    if (!compact && d.look && d.look.length) {
+      var c = el('div'); c.appendChild(el('h3', '', 'Clues that point elsewhere'));
+      var u = el('ul', 'plist');
+      d.look.forEach(function (t) { var li = el('li'); li.appendChild(el('b', '', t[0])); li.appendChild(txt(' \u2192 ' + t[1])); u.appendChild(li); });
+      c.appendChild(u); grid.appendChild(c);
+    }
+    card.appendChild(grid);
+    return card;
+  }
+
+  // ---------- update ----------
+  var showBtn = document.getElementById('show'), retryBtn = document.getElementById('retry');
+  function update() {
+    var c = cur(), r = diag(c);
+    var fbEl = document.getElementById('feedback'); fbEl.textContent = '';
+    document.querySelectorAll('#answers .fb').forEach(function (x) { x.remove(); });
+    var bad = [];
+    if (r && (picked || shown)) {
+      var fb = buildFeedback(r); bad = fb.bad;
+      // open the feedback right under the row it belongs to
+      var anchorL = (shown && r.kind === 'ok') ? r.letter : picked;
+      var row = anchorL && document.getElementById('ans-' + anchorL);
+      if (row) row.insertAdjacentElement('afterend', fb.box); else fbEl.appendChild(fb.box);
+    }
+    renderStem(bad);
+
+    document.getElementById('code').textContent = 'Code: ' + mod.slots.map(function (s) { return st()[s.id] ? s.id + st()[s.id] : '—'; }).join(' · ');
+    document.querySelectorAll('.chip').forEach(function (ch) { var u = st()[ch.dataset.slot] === ch.dataset.key; ch.classList.toggle('used', u); ch.setAttribute('aria-pressed', u ? 'true' : 'false'); });
+    document.querySelectorAll('.preset').forEach(function (p) { var pr = mod.presets[+p.dataset.preset]; p.setAttribute('aria-pressed', pr.every(function (v, i) { return v === c[i]; }) ? 'true' : 'false'); });
+
+    if (mod.ruler) {
+      var mark = document.getElementById('mark'), rv = document.getElementById('ruler-val'), v = c[0];
+      if (v) { mark.hidden = false; mark.style.left = pos(mod.ruler.days[v]) + '%'; rv.textContent = mod.ruler.text[v]; }
+      else { mark.hidden = true; rv.textContent = 'Pick slot 1'; }
+    }
+
+    var filled = c.filter(function (v) { return v; }).length;
+    var correct = r && r.kind === 'ok' ? r.letter : null;
+    var isRight = picked && correct === picked;
+    var done = isRight || shown;
+    document.querySelectorAll('.ans').forEach(function (b) {
+      var L = b.dataset.letter, f = b.querySelector('.flag');
+      b.disabled = !r || done;
+      b.classList.remove('right', 'wrong'); f.textContent = '';
+      b.setAttribute('aria-pressed', picked === L ? 'true' : 'false');
+      if (picked === L) { if (isRight) { b.classList.add('right'); f.textContent = 'Correct'; } else { b.classList.add('wrong'); f.textContent = 'Not this one'; } }
+      if (shown && correct === L && !isRight) { b.classList.add('right'); f.textContent = 'Answer'; }
+    });
+    var status = document.getElementById('status');
+    var left = c.length - filled;
+    status.textContent = !r ? left + ' slot' + (left === 1 ? '' : 's') + ' left to fill.' : (!picked && !shown ? 'Pick an answer.' : '');
+    status.hidden = !status.textContent;
+    showBtn.hidden = !r || done;
+    retryBtn.hidden = !(picked && !isRight && !shown);
+
+    var sw = document.getElementById('swaps-wrap'); sw.hidden = !(r && done);
+    if (r && done) {
+      var ul = document.getElementById('swaps'); ul.textContent = '';
+      var base = label(r), any = false;
+      mod.slots.forEach(function (slot, i) {
+        Object.keys(slot.opts).forEach(function (k) {
+          if (k === c[i]) return;
+          var alt = c.slice(); alt[i] = k; var r2 = diag(alt);
+          if (!r2 || label(r2) === base) return;
+          any = true;
+          var li = el('li'); li.appendChild(el('span', 'code', (i + 1) + c[i] + ' → ' + (i + 1) + k)); li.appendChild(el('span', '', label(r2))); ul.appendChild(li);
+        });
+      });
+      if (!any) ul.appendChild(el('li', 'none', 'No single swap changes this answer.'));
+    }
+  }
+
+  showBtn.addEventListener('click', function () { shown = true; update(); });
+  retryBtn.addEventListener('click', function () { picked = null; update(); var a = document.querySelector('.ans'); if (a) a.focus(); });
+
+  select(fromHash());
+})();
+</script>
+
+<style>
+.sheetlink { display: inline-flex; align-items: center; gap: 6px; }
+.sheetfoot { margin-top: 6px; }
+.sheetfoot button { border: none; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.viewer { position: fixed; inset: 0; z-index: 900; background: rgba(10, 16, 28, .55); display: flex; align-items: stretch; justify-content: center; padding: max(12px, env(safe-area-inset-top, 0px)) 12px 12px; }
+.viewer[hidden] { display: none; }
+.vbox { background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; width: min(1100px, 100%); display: flex; flex-direction: column; overflow: hidden; }
+.vbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.vbar h2 { font-family: var(--display); font-size: 18px; margin: 0 auto 0 0; }
+.vbar select { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); max-width: 100%; }
+.vbar .pg { font-family: var(--mono); font-size: 13px; color: var(--muted); min-width: 64px; text-align: center; }
+.vbar a.btn { text-decoration: none; display: inline-block; }
+.vbody { flex: 1; overflow: auto; background: var(--zone); padding: 14px; display: flex; justify-content: center; align-items: flex-start; }
+.vbody canvas { max-width: 100%; height: auto; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.18); border-radius: 4px; }
+.vmsg { max-width: 60ch; margin: 40px auto; text-align: center; color: var(--body); }
+@media (max-width: 620px) { .vbar h2 { width: 100%; } .vbar select { flex: 1 1 100%; } }
+</style>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="vtitle">
+  <div class="vbox">
+    <div class="vbar">
+      <h2 id="vtitle">Study sheets</h2>
+      <span role="group" aria-label="Which PDF" style="display:inline-flex;gap:4px"><button class="btn preset" type="button" id="vdoc-study" aria-pressed="true">Study</button><button class="btn preset" type="button" id="vdoc-practice" aria-pressed="false">Practice</button></span>
+      <select id="vjump" aria-label="Go to sheet"></select>
+      <button class="btn" type="button" id="vprev" aria-label="Previous page">‹</button>
+      <span class="pg" id="vpg" aria-live="polite"></span>
+      <button class="btn" type="button" id="vnext" aria-label="Next page">›</button>
+      <a class="btn" id="vopen" target="_blank" rel="noopener">Open in new tab</a>
+      <a class="btn" id="vdl" download>Download PDF</a>
+      <button class="btn" type="button" id="vclose">Close</button>
+    </div>
+    <div class="vbody" id="vbody"><canvas id="vcanvas" aria-label="Sheet page"></canvas></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STUDY_PAGES = [
+    [1, "Mental status exam"],
+    [2, "Mood: bipolar spectrum and depression"],
+    [3, "Mania vs. hypomania"],
+    [4, "Telling the depressive disorders apart"],
+    [5, "Depressive disorders timeline"],
+    [6, "Pharm: the antidepressants"],
+    [7, "Pharm: mood stabilizers"],
+    [8, "Telling the anxiety disorders apart"],
+    [9, "OCD and its relatives"],
+    [10, "Acute stress, PTSD and adjustment"],
+    [11, "Pharm: anxiety, OCD and trauma"],
+    [12, "Telling the \"schizo\" disorders apart"],
+    [13, "Psychosis and mood"],
+    [14, "Primary or secondary psychosis?"],
+    [15, "Pharm: antipsychotics"],
+    [16, "Schizophrenia: course, prognosis, side effects"],
+    [17, "The ten personality disorders"],
+    [18, "Personality disorders and look-alikes"],
+    [19, "Treating personality disorders"],
+    [20, "Delirium and catatonia"],
+    [21, "Substance use: intoxication and withdrawal"],
+    [22, "Substance use: treatment"],
+    [23, "Psychotherapy: telling them apart"],
+    [24, "Psychotherapy: matching therapy to problem"]
+  ];
+  var PRACTICE_PAGES = [
+    [1, "Cover and contents"],
+    [2, "The mental status exam"],
+    [3, "Bipolar I, bipolar II, cyclothymia and depression"],
+    [4, "Telling the depressive disorders apart"],
+    [5, "The antidepressants"],
+    [6, "Mood stabilizers"],
+    [7, "Telling the anxiety disorders apart"],
+    [8, "OCD and its relatives"],
+    [9, "Acute stress, PTSD and adjustment disorder"],
+    [10, "Medications for anxiety, OCD and trauma"],
+    [11, "Telling the \u201cschizo\u201d disorders apart"],
+    [12, "Psychosis and mood; primary or secondary?"],
+    [13, "Antipsychotics"],
+    [14, "Schizophrenia: course, prognosis and side effects over time"],
+    [15, "The ten personality disorders"],
+    [16, "Look-alikes and treatment"],
+    [17, "Delirium and catatonia"],
+    [18, "Intoxication and withdrawal"],
+    [19, "Treating substance use disorders"],
+    [20, "Telling the psychotherapies apart"],
+    [21, "Matching the therapy to the problem"]
+  ];
+  var DOCS = {
+    study: { url: 'MBB-Psychiatry-Differential-Sheets.pdf', title: 'Study sheets', pages: STUDY_PAGES },
+    practice: { url: 'MBB-Psychiatry-Fillable-Sheets.pdf', title: 'Practice sheets', pages: PRACTICE_PAGES }
+  };
+  var cur = 'study', PDF_URL = DOCS.study.url, PAGES = STUDY_PAGES;
+  var cache = {};
+  var PRACTICE_PAGE = {"bipolar": 3, "anxiety": 7, "psychotic": 11, "personality": 15, "antidepressants": 5, "mood-stabilizers": 6, "anxiety-drugs": 10, "antipsychotics": 13, "substance-drugs": 19, "therapy-name": 20, "therapy-match": 21};
+  var TAB_PAGE = { bipolar: 2, anxiety: 8, psychotic: 12, personality: 17, antidepressants: 6, 'mood-stabilizers': 7, 'anxiety-drugs': 11, antipsychotics: 15, 'substance-drugs': 22, 'therapy-name': 23, 'therapy-match': 24 };
+  var viewer = document.getElementById('viewer'), canvas = document.getElementById('vcanvas'), body = document.getElementById('vbody');
+  var jump = document.getElementById('vjump'), pgEl = document.getElementById('vpg');
+  var openA = document.getElementById('vopen'), dlA = document.getElementById('vdl');
+  var doc = null, page = 1, loading = null, lastFocus = null, rendering = false, pending = null;
+  function setDoc(key) {
+    if (cur !== key) { cache[cur] = { doc: doc, loading: loading }; }
+    cur = key; PDF_URL = DOCS[key].url; PAGES = DOCS[key].pages;
+    var c = cache[key] || {}; doc = c.doc || null; loading = c.loading || null;
+    document.getElementById('vtitle').textContent = DOCS[key].title;
+    document.getElementById('vdoc-study').setAttribute('aria-pressed', key === 'study' ? 'true' : 'false');
+    document.getElementById('vdoc-practice').setAttribute('aria-pressed', key === 'practice' ? 'true' : 'false');
+    dlA.href = PDF_URL; dlA.setAttribute('download', PDF_URL);
+    jump.textContent = '';
+    PAGES.forEach(function (p) { var o = document.createElement('option'); o.value = p[0]; o.textContent = 'p. ' + p[0] + ' · ' + p[1]; jump.appendChild(o); });
+  }
+  setDoc('study');
+
+  function loadLib() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function () { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } catch (e) {} res(window.pdfjsLib); };
+      s.onerror = rej; document.head.appendChild(s);
+    });
+  }
+  function fallback() {
+    canvas.hidden = true;
+    var old = body.querySelector('.vmsg'); if (old) old.remove();
+    var m = document.createElement('div'); m.className = 'vmsg';
+    m.innerHTML = '<p><b>The sheets can’t be shown inside the page here.</b></p><p>Use <b>Open in new tab</b> or <b>Download PDF</b> above.</p>';
+    body.appendChild(m);
+  }
+  function render(n) {
+    if (!doc) return;
+    canvas.hidden = false; var vm = body.querySelector('.vmsg'); if (vm) vm.remove();
+    if (rendering) { pending = n; return; }
+    rendering = true; page = n;
+    jump.value = String(n); pgEl.textContent = n + ' / ' + doc.numPages;
+    openA.href = PDF_URL + '#page=' + n;
+    doc.getPage(n).then(function (p) {
+      var avail = Math.max(280, body.clientWidth - 28);
+      var base = p.getViewport({ scale: 1 });
+      var scale = Math.min(2.2, avail / base.width);
+      var dpr = window.devicePixelRatio || 1;
+      var vp = p.getViewport({ scale: scale * dpr });
+      canvas.width = vp.width; canvas.height = vp.height;
+      canvas.style.width = Math.floor(vp.width / dpr) + 'px';
+      canvas.setAttribute('aria-label', 'Sheet page ' + n + ': ' + (PAGES[n - 1] ? PAGES[n - 1][1] : ''));
+      return p.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    }).then(function () { rendering = false; body.scrollTop = 0; if (pending) { var q = pending; pending = null; render(q); } })
+      .catch(function () { rendering = false; fallback(); });
+  }
+  function open(n, key) {
+    lastFocus = lastFocus && !viewer.hidden ? lastFocus : document.activeElement;
+    if (key && key !== cur) setDoc(key);
+    viewer.hidden = false; document.body.style.overflow = 'hidden';
+    page = n || page || 1;
+    openA.href = PDF_URL + '#page=' + page; jump.value = String(page); pgEl.textContent = page + ' / ' + PAGES.length;
+    document.getElementById('vclose').focus();
+    if (doc) { render(page); return; }
+    if (location.protocol === 'file:') { fallback(); return; }
+    var want = cur;
+    if (!loading) loading = loadLib().then(function (lib) { return lib.getDocument(PDF_URL).promise; });
+    loading.then(function (d) { if (cur !== want) { cache[want] = { doc: d, loading: Promise.resolve(d) }; return; } doc = d; if (!viewer.hidden) render(page); }).catch(function () { if (cur === want) { loading = null; fallback(); } });
+  }
+  function close() { viewer.hidden = true; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus(); }
+  document.getElementById('vclose').addEventListener('click', close);
+  document.getElementById('vprev').addEventListener('click', function () { if (doc && page > 1) render(page - 1); });
+  document.getElementById('vnext').addEventListener('click', function () { if (doc && page < doc.numPages) render(page + 1); });
+  jump.addEventListener('change', function () { var n = +jump.value; if (doc) render(n); else { page = n; openA.href = PDF_URL + '#page=' + n; } });
+  viewer.addEventListener('click', function (e) { if (e.target === viewer) close(); });
+  document.addEventListener('keydown', function (e) {
+    if (viewer.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    if (e.key === 'ArrowRight' && e.target.tagName !== 'SELECT') document.getElementById('vnext').click();
+    if (e.key === 'ArrowLeft' && e.target.tagName !== 'SELECT') document.getElementById('vprev').click();
+  });
+  var rt; window.addEventListener('resize', function () { if (!viewer.hidden && doc) { clearTimeout(rt); rt = setTimeout(function () { render(page); }, 150); } });
+
+  // Download: inside the claude.ai viewer, plain download links are blocked, so save through the downloads capability.
+  var inViewer = !!(window.claude && typeof window.claude.use === 'function');
+  dlA.addEventListener('click', function (e) {
+    if (!inViewer) return; // GitHub Pages or a saved copy: the normal download link works
+    e.preventDefault();
+    var label = dlA.textContent;
+    window.claude.use('downloads').then(function (dl) {
+      if (!dl) throw { code: 'unavailable' };
+      dlA.textContent = 'Preparing…';
+      return fetch(PDF_URL).then(function (r) { if (!r.ok) throw { code: 'unavailable' }; return r.blob(); })
+        .then(function (blob) { return dl.save({ filename: PDF_URL, data: blob }); });
+    }).then(function () { dlA.textContent = label; })
+      .catch(function (err) {
+        dlA.textContent = label;
+        var code = err && err.code;
+        if (code === 'declined') return;
+        if (code === 'rate_limited') { dlA.textContent = 'Try again in a moment'; setTimeout(function () { dlA.textContent = label; }, 2500); return; }
+        dlA.textContent = 'Download not available here'; setTimeout(function () { dlA.textContent = label; }, 3000);
+      });
+  });
+
+  // Header button
+  var btn = document.getElementById('sheets-btn');
+  if (btn) btn.addEventListener('click', function () { var id = location.hash.replace('#', ''); open(TAB_PAGE[id] || 1, 'study'); });
+  var pbtn = document.getElementById('practice-btn');
+  if (pbtn) pbtn.addEventListener('click', function () { var id = location.hash.replace('#', ''); open(PRACTICE_PAGE[id] || 1, 'practice'); });
+  document.getElementById('vdoc-study').addEventListener('click', function () { if (cur !== 'study') open(1, 'study'); });
+  document.getElementById('vdoc-practice').addEventListener('click', function () { if (cur !== 'practice') open(1, 'practice'); });
+
+  // Per-tab link under the footer
+  var foot = document.getElementById('footer');
+  var link = document.createElement('p'); link.className = 'sheetfoot'; foot.parentNode.insertBefore(link, foot.nextSibling);
+  function updateLink() {
+    var id = location.hash.replace('#', '') || 'bipolar';
+    var n = TAB_PAGE[id]; link.textContent = '';
+    if (!n) { link.appendChild(document.createTextNode('No study sheet for this topic yet. ')); var b0 = document.createElement('button'); b0.type = 'button'; b0.textContent = 'Browse all study sheets'; b0.addEventListener('click', function () { open(1, 'study'); }); link.appendChild(b0); return; }
+    link.appendChild(document.createTextNode('Study sheet for this topic: '));
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'p. ' + n + ', ' + PAGES[n - 1][1];
+    b.addEventListener('click', function () { open(n, 'study'); }); link.appendChild(b);
+    var pn = PRACTICE_PAGE[id];
+    if (pn) { link.appendChild(document.createTextNode(' · Practice: ')); var b2 = document.createElement('button'); b2.type = 'button'; b2.textContent = 'p. ' + pn + ' (fill in the blanks)'; b2.addEventListener('click', function () { open(pn, 'practice'); }); link.appendChild(b2); }
+  }
+  window.addEventListener('hashchange', updateLink); updateLink();
+})();
+</script>
+
+</body></html>
