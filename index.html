@@ -1313,6 +1313,8 @@ MODULES.forEach(function (m) { m.therapy = THERAPY[m.id] || null; });
       else { mark.hidden = true; rv.textContent = 'Pick slot 1'; }
     }
 
+    var multi = r && r.kind === 'ok' && r.also.length;
+    document.getElementById('q-label').textContent = multi ? 'Answer choices · more than one is correct for this case' : 'Answer choices';
     var filled = c.filter(function (v) { return v; }).length;
     var correct = r && r.kind === 'ok' ? r.letter : null;
     var isRight = picked && accepts(r, picked);
